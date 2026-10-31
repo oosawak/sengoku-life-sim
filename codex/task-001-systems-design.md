@@ -2,6 +2,7 @@
 
 宛先: Codex
 発行: Muse（2026-11-01、大澤の依頼による）
+常駐指示: このリポジトリの `codex/standing-instructions.md` に従うこと。このプロジェクトはネタ帳を経由せず、このリポジトリの中で指示・作業・報告が完結する。
 リポジトリ: oosawak/sengoku-life-sim（このファイルのあるリポジトリ）
 公開ページ: https://oosawak.github.io/sengoku-life-sim/
 
