@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>戦国人生シミュレーション（仮称）試作 v0.1</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="app">
+  <!-- 表紙 -->
+  <section id="screen-title" class="screen">
+    <p class="kicker">試作 v0.1 ／ 人物5人・出来事16件</p>
+    <h1>戦国人生<br>シミュレーション</h1>
+    <p class="sub">（仮称）</p>
+    <p class="lead">天が決めた戦国人物に生まれ、<br>史実の出来事と選択の中で一生を生きる。</p>
+    <button id="btn-born" class="primary">生まれる</button>
+    <button id="btn-collection" class="ghost">前世の記録（コレクション）</button>
+    <div id="collection-panel" class="panel hidden"></div>
+    <p class="note">記録はこの端末の中だけに保存されます。公開はまだしていません。</p>
+  </section>
+
+  <!-- 出生札 -->
+  <section id="screen-birth" class="screen hidden">
+    <p class="kicker">天命</p>
+    <div id="birth-card" class="card"></div>
+    <button id="btn-start-life" class="primary">この一生を始める</button>
+    <button id="btn-reroll" class="ghost">もう一度、生まれる</button>
+  </section>
+
+  <!-- 生涯 -->
+  <section id="screen-life" class="screen hidden">
+    <header class="life-head">
+      <div>
+        <div id="life-name" class="life-name"></div>
+        <div id="life-meta" class="life-meta"></div>
+      </div>
+      <div class="life-nums">
+        <div>評判 <span id="life-reputation">0</span></div>
+        <div>史実の没年 <span id="life-historical-death"></span></div>
+      </div>
+    </header>
+    <div class="life-controls">
+      <button id="btn-pause" class="ghost small">止める</button>
+      <button id="btn-speed" class="ghost small">速くする ×3</button>
+    </div>
+    <div id="life-log" class="log"></div>
+    <div id="event-box" class="event hidden"></div>
+  </section>
+
+  <!-- 最期・列伝 -->
+  <section id="screen-end" class="screen hidden">
+    <p class="kicker">最期と列伝</p>
+    <div id="end-summary" class="card"></div>
+    <h2>列伝</h2>
+    <div id="retsuden" class="retsuden"></div>
+    <button id="btn-copy" class="primary">列伝をコピーする</button>
+    <button id="btn-again" class="ghost">もう一度、生まれる</button>
+    <button id="btn-to-title" class="ghost">表紙へ戻る</button>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
