@@ -37,7 +37,7 @@
   </section>
 
   <!-- 生涯 -->
-  <section id="screen-life" class="screen hidden">
+  <section id="screen-life" class="screen life-screen hidden">
     <header class="life-head">
       <div>
         <div id="life-name" class="life-name"></div>
@@ -47,10 +47,6 @@
         <div>史実の没年 <span id="life-historical-death"></span></div>
       </div>
     </header>
-    <div class="life-controls">
-      <button id="btn-pause" class="ghost small">止める</button>
-      <button id="btn-speed" class="ghost small">×1</button>
-    </div>
     <section class="life-hud" aria-label="現在の身上">
       <div id="life-stats" class="life-stats"></div>
       <div class="hud-meta">
@@ -58,16 +54,26 @@
         <span>所持金 <b><span id="life-money">0.0</span>貫</b></span>
         <span>健康 <b id="life-health">健やか</b></span>
       </div>
+    </section>
+    <div class="life-controls">
       <label class="focus-picker" for="life-focus">日々の心がけ
         <select id="life-focus">
           <option>武芸稽古</option><option>学問</option><option>政務</option>
           <option>人付き合い</option><option>家の仕事・商い</option><option>休養</option>
         </select>
       </label>
-    </section>
+      <button id="btn-pause" class="ghost small">止める</button>
+      <button id="btn-speed" class="ghost small">×1</button>
+    </div>
     <div id="change-toast" class="change-toast" aria-live="polite"></div>
-    <div id="life-log" class="log"></div>
     <div id="event-box" class="event hidden"></div>
+    <section class="log-panel" aria-label="一生の記録">
+      <div class="log-heading">
+        <h2>一生の記録</h2>
+        <span>新しい記録は下に加わります</span>
+      </div>
+      <div id="life-log" class="log" role="region" aria-label="一生の記録。欄内をスクロールできます" tabindex="0"></div>
+    </section>
   </section>
 
   <!-- 最期・列伝 -->

@@ -352,6 +352,7 @@ if (typeof document !== "undefined" && document.getElementById("app")) {
     queueIndex = 0;
     state = Engine.createState(person);
     paused = false; waitingForChoice = false; speed = 1; accumulator = 0;
+    document.body.classList.add("life-active");
     $("life-name").textContent = person.name;
     $("life-log").innerHTML = `<p><span class="year">${state.year}年${state.month}月</span> ${person.kuni}に生まれる。0歳。</p>`;
     $("event-box").classList.add("hidden");
@@ -393,7 +394,9 @@ if (typeof document !== "undefined" && document.getElementById("app")) {
   function logLine(html) {
     const item = document.createElement("div");
     item.innerHTML = html;
-    $("life-log").prepend(item);
+    const log = $("life-log");
+    log.append(item);
+    log.scrollTop = log.scrollHeight;
   }
   function showChangeToast(text) {
     const toast = $("change-toast");
@@ -489,7 +492,7 @@ if (typeof document !== "undefined" && document.getElementById("app")) {
       card.append(title, preview, result, button); box.appendChild(card);
     }
     box.classList.remove("hidden");
-    box.scrollIntoView({ behavior: "smooth", block: "start" });
+    box.scrollTop = 0;
   }
 
   function choose(event, choice) {
@@ -521,6 +524,7 @@ if (typeof document !== "undefined" && document.getElementById("app")) {
 
   function finishLife() {
     stopTimer(); paused = true;
+    document.body.classList.remove("life-active");
     const deathYear = Engine.effectiveDeath(person, state.lifeMod);
     const shukugan = Engine.evaluateShukugan(person, state.flags, deathYear);
     const end = { deathYear, diff: deathYear - person.died, shukugan, reputation: state.reputation,
@@ -544,7 +548,7 @@ if (typeof document !== "undefined" && document.getElementById("app")) {
     $("btn-reroll").addEventListener("click", rollBirth);
     $("btn-start-life").addEventListener("click", startLife);
     $("btn-again").addEventListener("click", rollBirth);
-    $("btn-to-title").addEventListener("click", () => { stopTimer(); show("screen-title"); });
+    $("btn-to-title").addEventListener("click", () => { stopTimer(); document.body.classList.remove("life-active"); show("screen-title"); });
     $("btn-collection").addEventListener("click", () => { renderCollection(); $("collection-panel").classList.toggle("hidden"); });
     $("btn-pause").addEventListener("click", () => {
       if (waitingForChoice) return;
