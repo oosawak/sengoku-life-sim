@@ -51,7 +51,7 @@
 - 共通イベント: 慶長三陸地震は天童頼澄には発火しないことを確認。
 - 年収: 5段階すべて、12か月分の支給合計が年収と一致。
 - ローカルHTTP: `/`、`/app.js`、`/style.css`、`/data.json` がすべて200。
-- 公開側: commit/push後に公開ページと `data.json` の `birth_month` を確認する（確認結果は公開反映を待って追記）。
+- 公開側: GitHub Pages の Actions run `41260219426` が成功し、commit `de087c8a572daf886b578eed3f4261d8994cac82` の公開を確認。トップページと `data.json` はともにHTTP 200、`Last-Modified: 2026-11-01 01:14:43 UTC`。トップページに v0.2 と `life-focus`、`data.json` に `birth_month` と政宗の9月設定が反映されている。
 
 ## 第2弾への申し送り
 
