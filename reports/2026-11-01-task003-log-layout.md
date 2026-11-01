@@ -15,6 +15,7 @@
 
 - `git diff --check`: 成功。
 - ローカルHTTP: `/`、`/app.js`、`/style.css`、`/data.json` はすべて200。
+- 公開側: Pagesのトップと `data.json` はHTTP 200。`Last-Modified: 2026-11-01 01:41:13 UTC`。トップに `log-panel` と「日々の出来事の頻度」、JSONに日常イベント9件を確認した。Actions run `41262070541` は最初の確認時は `in_progress` だったが、その後 `success` で完了した。
 - 多数の記録はログ領域へappendし、追加ごとに `scrollTop = scrollHeight` とする。ログ領域は生涯画面内の比率で高さを制限し、`overflow-y: auto`、生涯画面は `100dvh` と `overflow: hidden` を使うため、記録が増えてもページ全体は伸びない構造。
 - イベント発生時にページを `scrollIntoView` しない。生涯画面は固定高でイベント領域を残り高さに割り当て、長文はイベント欄内でスクロールする構造。
 - ブラウザーのスクリーンショットを使った目視確認は未実施。Playwrightは利用できず、GUI操作CLIの `orca` も環境に見つからなかった。スマートフォン実機確認も未実施。

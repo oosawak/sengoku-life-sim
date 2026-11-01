@@ -16,6 +16,7 @@
 
 - `PYTHONPATH=/private/tmp/task002-python-deps python3 scripts/build.py`: 成功。人物5人、史実イベント16件、日常イベント9件を生成。
 - `git diff --check`: 成功。
+- 公開側: Pagesのトップと `data.json` はHTTP 200。`Last-Modified: 2026-11-01 01:41:13 UTC`。公開JSONに日常イベント9件を確認した。Actions run `41262070541` は `success` で完了した。
 - ブラウザーでの日々のイベント抽選から選択完了までの手動操作は未実施。
 
 ## 未決・次の調整
