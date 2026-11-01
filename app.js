@@ -82,6 +82,7 @@ const Engine = {
     const rankLevel = this.startingRank(person);
     return {
       year: person.born,
+      startYear: person.born,
       month: person.birth_month || 1,
       age: 0,
       stats: Object.fromEntries(GAME_CONFIG.stats.map((key) => [key, Number(person.stats[key]) || 1])),
@@ -95,6 +96,8 @@ const Engine = {
       incomeRemainder: 0,
       flags: new Set(),
       history: [],
+      dailyCooldowns: {},
+      lastDailyCategory: null,
     };
   },
 
@@ -113,6 +116,47 @@ const Engine = {
     if (typeof effect["所持金"] === "number") state.money = Math.max(0, Math.round((state.money + effect["所持金"]) * 10) / 10);
     if (choice.flag) state.flags.add(choice.flag);
     return state;
+  },
+
+  resolveChoice(state, choice) {
+    if (!choice.check) return { ...choice, checkResult: null };
+    const check = choice.check;
+    const value = Number(state.stats[check.stat]) + (Number(check.modifier) || 0);
+    const success = value >= check.difficulty;
+    const outcome = success ? check.success : check.failure;
+    return {
+      ...choice,
+      result: outcome.result,
+      effect: outcome.effect || {},
+      flag: outcome.flag,
+      checkResult: { stat: check.stat, value, difficulty: check.difficulty, success },
+    };
+  },
+
+  rollDailyEvent(events, state, frequency, rng = Math.random) {
+    const rules = GAME_CONFIG.eventFrequencies[frequency] || GAME_CONFIG.eventFrequencies.normal;
+    let triggered = rng() < rules.monthlyChance;
+    if (state.month === 1 && !triggered) triggered = rng() < rules.annualChance;
+    if (!triggered) return null;
+    const elapsed = (state.year - state.startYear) * 12 + state.month;
+    let candidates = events.filter((event) => {
+      if (event.age_min != null && state.age < event.age_min) return false;
+      if (event.age_max != null && state.age > event.age_max) return false;
+      const last = state.dailyCooldowns[event.id];
+      return last == null || elapsed - last >= (event.cooldown_months || 0);
+    });
+    const otherCategory = candidates.filter((event) => event.category !== state.lastDailyCategory);
+    if (otherCategory.length) candidates = otherCategory;
+    if (!candidates.length) return null;
+    const event = candidates[Math.floor(rng() * candidates.length)];
+    return { ...event, year: state.year, month: state.month, daily: true };
+  },
+
+  completeDailyEvent(state, event) {
+    if (!event.daily) return;
+    const elapsed = (state.year - state.startYear) * 12 + state.month;
+    state.dailyCooldowns[event.id] = elapsed;
+    state.lastDailyCategory = event.category;
   },
 
   monthlyIncome(state) {
@@ -407,6 +451,9 @@ if (typeof document !== "undefined" && document.getElementById("app")) {
       showEvent(next);
       return;
     }
+    const settings = loadSettings();
+    const daily = Engine.rollDailyEvent(DATA.daily_events || [], state, settings.eventFrequency);
+    if (daily) { showEvent(daily); return; }
     if (state.year >= Engine.effectiveDeath(person, state.lifeMod) && state.month === 12) { finishLife(); return; }
   }
 
@@ -420,13 +467,23 @@ if (typeof document !== "undefined" && document.getElementById("app")) {
   function showEvent(event) {
     paused = true; waitingForChoice = true; accumulator = 0; updateControls();
     const box = $("event-box");
-    box.innerHTML = `<h3>${event.year}年${Engine.eventMonth(event)}月 ${event.title}（${state.age}歳）</h3><p>${event.body || ""}</p>`;
+    const month = event.month || Engine.eventMonth(event);
+    const kind = event.daily ? `<span class="event-kind">日々の出来事 ／ ${event.category}</span>` : `<span class="event-kind historical">史実の出来事</span>`;
+    box.innerHTML = `${kind}<h3>${event.year}年${month}月 ${event.title}（${state.age}歳）</h3><p>${event.body || ""}</p>`;
     for (const choice of event.choices || []) {
       const card = document.createElement("div");
       card.className = "choice-card";
       const title = document.createElement("strong"); title.textContent = choice.text;
-      const preview = document.createElement("div"); preview.className = "effect-preview"; preview.innerHTML = formatEffect(choice.effect);
-      const result = document.createElement("p"); result.className = "choice-result"; result.textContent = choice.result || "";
+      const preview = document.createElement("div"); preview.className = "effect-preview";
+      const result = document.createElement("p"); result.className = "choice-result";
+      if (choice.check) {
+        const resolved = Engine.resolveChoice(state, choice);
+        preview.innerHTML = `<span class="check-preview">${choice.check.stat} ${Math.round(resolved.checkResult.value)} ／ 難度 ${choice.check.difficulty} ・${resolved.checkResult.success ? "成功" : "失敗"}</span>${formatEffect(resolved.effect)}`;
+        result.textContent = resolved.result;
+      } else {
+        preview.innerHTML = formatEffect(choice.effect);
+        result.textContent = choice.result || "";
+      }
       const button = document.createElement("button"); button.className = "primary"; button.textContent = "この道を選ぶ";
       button.addEventListener("click", () => choose(event, choice));
       card.append(title, preview, result, button); box.appendChild(card);
@@ -436,17 +493,20 @@ if (typeof document !== "undefined" && document.getElementById("app")) {
   }
 
   function choose(event, choice) {
-    Engine.applyChoice(state, choice);
-    const month = Engine.eventMonth(event);
-    state.history.push({ year: event.year, month, title: event.title, choiceText: choice.text, result: choice.result || "" });
+    const resolved = Engine.resolveChoice(state, choice);
+    Engine.applyChoice(state, resolved);
+    Engine.completeDailyEvent(state, event);
+    const month = event.month || Engine.eventMonth(event);
+    state.history.push({ year: event.year, month, title: event.title, choiceText: choice.text, result: resolved.result || "" });
     if (event.battle) {
       const collection = loadCollection();
       collection.battles[event.battle] = (collection.battles[event.battle] || 0) + 1;
       saveCollection(collection);
     }
-    logLine(`<p><span class="year">${event.year}年${month}月</span> <strong>${event.title}</strong>――${choice.text}。${choice.result || ""} ${formatEffect(choice.effect)}</p>`);
+    const checkSummary = resolved.checkResult ? `（${resolved.checkResult.stat} ${Math.round(resolved.checkResult.value)}／難度${resolved.checkResult.difficulty}・${resolved.checkResult.success ? "成功" : "失敗"}）` : "";
+    logLine(`<p><span class="year">${event.year}年${month}月</span> <strong>${event.title}</strong>――${choice.text}${checkSummary}。${resolved.result || ""} ${formatEffect(resolved.effect)}</p>`);
     const effectLabels = { "武勇": "武勇", "知略": "知略", "政治": "政治", "魅力": "魅力", "家柄": "家柄", "評判": "評判", "寿命": "寿命", "健康": "健康", "所持金": "所持金" };
-    const effectText = Object.entries(choice.effect || {}).filter(([key, value]) => effectLabels[key] && typeof value === "number")
+    const effectText = Object.entries(resolved.effect || {}).filter(([key, value]) => effectLabels[key] && typeof value === "number")
       .map(([key, value]) => `${effectLabels[key]} ${formatDelta(value)}${key === "所持金" ? "貫" : key === "寿命" ? "年" : ""}`).join("　／　");
     if (effectText) showChangeToast(effectText);
     updateMeta(); updateHud();

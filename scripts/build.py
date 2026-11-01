@@ -22,12 +22,54 @@ except ImportError:
 ROOT = Path(__file__).resolve().parent.parent
 PEOPLE_DIR = ROOT / "content" / "people"
 EVENTS_DIR = ROOT / "content" / "events"
+DAILY_EVENTS_DIR = ROOT / "content" / "daily-events"
 OUT = ROOT / "data.json"
 
 PEOPLE_REQUIRED = ["id", "name", "yomi", "house", "kuni", "born", "birth_month", "birth_month_note", "died", "rank", "stats", "shukugan", "intro", "events"]
 EVENT_REQUIRED = ["id", "year", "who", "title", "choices"]
 STAT_KEYS = ["武勇", "知略", "政治", "魅力", "家柄"]
 EFFECT_KEYS = set(STAT_KEYS + ["評判", "寿命", "所持金", "健康"])
+CHECK_STATS = set(STAT_KEYS[:-1])
+
+
+def validate_choices(path, choices, errors, *, allow_checks=False):
+    if not isinstance(choices, list):
+        errors.append(f"{path.name}: choices は配列で指定してください")
+        return
+    if len(choices) < 2:
+        errors.append(f"{path.name}: choices は2件以上必要です")
+    for i, choice in enumerate(choices):
+        if not isinstance(choice, dict) or not isinstance(choice.get("text"), str):
+            errors.append(f"{path.name}: choices[{i}] に text がありません")
+            continue
+        check = choice.get("check")
+        branches = ("success", "failure") if check is not None else (None,)
+        if check is not None:
+            if not allow_checks:
+                errors.append(f"{path.name}: choices[{i}] の check はこのイベントでは使えません")
+                continue
+            if not isinstance(check, dict) or check.get("stat") not in CHECK_STATS:
+                errors.append(f"{path.name}: choices[{i}].check.stat が不正です")
+                continue
+            difficulty = check.get("difficulty")
+            if not isinstance(difficulty, int) or isinstance(difficulty, bool) or not 1 <= difficulty <= 100:
+                errors.append(f"{path.name}: choices[{i}].check.difficulty は1-100の整数です")
+                continue
+        for branch in branches:
+            outcome = choice if branch is None else check.get(branch, {})
+            prefix = f"choices[{i}]" if branch is None else f"choices[{i}].check.{branch}"
+            if not isinstance(outcome, dict) or not isinstance(outcome.get("result"), str):
+                errors.append(f"{path.name}: {prefix}.result がありません")
+                continue
+            effect = outcome.get("effect", {})
+            if not isinstance(effect, dict):
+                errors.append(f"{path.name}: {prefix}.effect は辞書で指定してください")
+                continue
+            for key, value in effect.items():
+                if key not in EFFECT_KEYS:
+                    errors.append(f"{path.name}: {prefix}.effect の未対応キーです: {key}")
+                if isinstance(value, bool) or not isinstance(value, (int, float)):
+                    errors.append(f"{path.name}: {prefix}.effect.{key} は数値で指定してください: {value}")
 
 
 def parse_file(path: Path):
@@ -98,22 +140,7 @@ def main():
             event_month = event.get("month", 1)
             if not isinstance(event_month, int) or isinstance(event_month, bool) or not (1 <= event_month <= 12):
                 errors.append(f"{path.name}: month は1-12の整数で指定してください: {event_month}")
-            if isinstance(choices, list):
-                if len(choices) < 2:
-                    errors.append(f"{path.name}: choices は2件以上必要です")
-                for i, c in enumerate(choices):
-                    if not isinstance(c, dict) or "text" not in c or "result" not in c:
-                        errors.append(f"{path.name}: choices[{i}] に text/result がありません")
-                        continue
-                    effect = c.get("effect", {})
-                    if not isinstance(effect, dict):
-                        errors.append(f"{path.name}: choices[{i}].effect は辞書で指定してください")
-                    else:
-                        for key, value in effect.items():
-                            if key not in EFFECT_KEYS:
-                                errors.append(f"{path.name}: choices[{i}].effect の未対応キーです: {key}")
-                            if isinstance(value, bool) or not isinstance(value, (int, float)):
-                                errors.append(f"{path.name}: choices[{i}].effect.{key} は数値で指定してください: {value}")
+            validate_choices(path, choices, errors)
             who = event.get("who")
             year = event.get("year")
             if who and who != "common":
@@ -133,6 +160,31 @@ def main():
             events.append(event)
 
     events.sort(key=lambda e: (e.get("year", 0), e.get("month", 0), e.get("id", "")))
+
+    daily_events = []
+    daily_ids = set()
+    for path in sorted(DAILY_EVENTS_DIR.glob("*.md")) if DAILY_EVENTS_DIR.exists() else []:
+        try:
+            event = parse_file(path)
+        except Exception as e:
+            errors.append(str(e))
+            continue
+        for key in ("id", "category", "cooldown_months", "choices"):
+            if key not in event:
+                errors.append(f"{path.name}: 日常イベントの必須項目 {key} がありません")
+        if event.get("id") in daily_ids:
+            errors.append(f"{path.name}: 日常イベント id が重複しています: {event.get('id')}")
+        daily_ids.add(event.get("id"))
+        if not isinstance(event.get("category"), str) or not event.get("category"):
+            errors.append(f"{path.name}: category は空でない文字列にしてください")
+        for field in ("age_min", "age_max", "cooldown_months"):
+            value = event.get(field)
+            if value is not None and (not isinstance(value, int) or isinstance(value, bool) or value < 0):
+                errors.append(f"{path.name}: {field} は0以上の整数にしてください")
+        if event.get("age_min") is not None and event.get("age_max") is not None and event["age_min"] > event["age_max"]:
+            errors.append(f"{path.name}: age_min が age_max を超えています")
+        validate_choices(path, event.get("choices"), errors, allow_checks=True)
+        daily_events.append(event)
 
     known_event_ids = {e.get("id") for e in events}
     planned = []
@@ -159,6 +211,7 @@ def main():
         "version": "0.2-prototype",
         "people": people,
         "events": events,
+        "daily_events": daily_events,
         "planned_event_ids": planned,
     }
     OUT.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")

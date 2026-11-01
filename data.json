@@ -648,6 +648,356 @@
       "_file": "common-1611-kecho-earthquake.md"
     }
   ],
+  "daily_events": [
+    {
+      "id": "daily-envoy",
+      "category": "relationships",
+      "cooldown_months": 60,
+      "age_min": 15,
+      "choices": [
+        {
+          "text": "客を丁重にもてなし、主君の言葉を預かる",
+          "check": {
+            "stat": "魅力",
+            "difficulty": 60,
+            "success": {
+              "result": "客は心を開き、主君への返書にあなたの働きを添えた。",
+              "effect": {
+                "魅力": 1,
+                "評判": 2
+              }
+            },
+            "failure": {
+              "result": "話題の選び方を誤り、相手は早々に席を立った。",
+              "effect": {
+                "評判": -1
+              }
+            }
+          }
+        },
+        {
+          "text": "用件だけを確かめ、すぐ返書を届ける",
+          "result": "飾り気はないが、返答は滞りなく届いた。",
+          "effect": {
+            "政治": 1
+          }
+        }
+      ],
+      "body": "遠方からの使者が城に着いた。道中の疲れが見えるが、主君への急ぎの用件があるという。",
+      "_file": "envoy.md"
+    },
+    {
+      "id": "daily-harvest-shortfall",
+      "category": "economy",
+      "cooldown_months": 72,
+      "age_min": 12,
+      "choices": [
+        {
+          "text": "蔵を開き、足りない米を村へ貸し出す",
+          "result": "冬を越す米は行き渡った。返済は急がせず、村との縁をつないだ。",
+          "effect": {
+            "所持金": -1,
+            "評判": 4
+          }
+        },
+        {
+          "text": "年貢を軽くし、来年の作付けを支える",
+          "check": {
+            "stat": "政治",
+            "difficulty": 65,
+            "success": {
+              "result": "村の負担を抑えながら、来年の田植えの約束を取り付けた。",
+              "effect": {
+                "評判": 2,
+                "政治": 1
+              }
+            },
+            "failure": {
+              "result": "取り決めが行き届かず、蔵の米も思ったほど戻らなかった。",
+              "effect": {
+                "所持金": -0.5
+              }
+            }
+          }
+        },
+        {
+          "text": "蔵の米を守り、村には自力でしのいでもらう",
+          "result": "蓄えは守ったが、困窮した村人の心は離れた。",
+          "effect": {
+            "評判": -4
+          }
+        }
+      ],
+      "body": "冷夏で実りが少なく、村の名主が年貢の相談に来た。蔵を開けば蓄えが減り、断れば村の暮らしが苦しくなる。",
+      "_file": "harvest.md"
+    },
+    {
+      "id": "daily-traveling-doctor",
+      "category": "health",
+      "cooldown_months": 48,
+      "age_min": 0,
+      "choices": [
+        {
+          "text": "薬師を呼び、診立てを受ける",
+          "result": "薬師の手当てで養生の仕方が分かった。身体も少し楽になった。",
+          "effect": {
+            "所持金": -0.5,
+            "健康": 8
+          }
+        },
+        {
+          "text": "薬代を惜しみ、家で静養する",
+          "check": {
+            "stat": "知略",
+            "difficulty": 55,
+            "success": {
+              "result": "数日休むと熱は引いた。家の者がそばについてくれた。",
+              "effect": {
+                "健康": 3,
+                "評判": 1
+              }
+            },
+            "failure": {
+              "result": "熱が長引き、稽古も政務も休むことになった。",
+              "effect": {
+                "健康": -8
+              }
+            }
+          }
+        }
+      ],
+      "body": "旅の薬師が近くの宿に滞在している。家の者が咳をしており、診てもらうなら今のうちだという。",
+      "_file": "medicine.md"
+    },
+    {
+      "id": "daily-merchant-proposal",
+      "category": "economy",
+      "cooldown_months": 60,
+      "age_min": 15,
+      "choices": [
+        {
+          "text": "商人に蔵の米を預け、相場を見て売る",
+          "check": {
+            "stat": "知略",
+            "difficulty": 60,
+            "success": {
+              "result": "相場の上がり目を読み、蔵に余裕を作れた。",
+              "effect": {
+                "所持金": 1.2,
+                "知略": 1
+              }
+            },
+            "failure": {
+              "result": "相場が崩れ、運び賃だけが残った。",
+              "effect": {
+                "所持金": -0.6
+              }
+            }
+          }
+        },
+        {
+          "text": "取引を断り、米を蔵に残す",
+          "result": "利は得なかったが、冬に備える米は確保できた。",
+          "effect": {
+            "評判": 1
+          }
+        }
+      ],
+      "body": "城下の商人が米の買い付けを申し出た。今売れば金になるが、冬の蓄えは少なくなる。",
+      "_file": "merchant.md"
+    },
+    {
+      "id": "daily-retainer-dispute",
+      "category": "household",
+      "cooldown_months": 48,
+      "age_min": 15,
+      "choices": [
+        {
+          "text": "双方から話を聞き、落としどころを探す",
+          "check": {
+            "stat": "政治",
+            "difficulty": 62,
+            "success": {
+              "result": "面目を保つ形で和解し、家中の空気が和らいだ。",
+              "effect": {
+                "政治": 1,
+                "評判": 2
+              }
+            },
+            "failure": {
+              "result": "片方の言い分を退けたため、わだかまりが残った。",
+              "effect": {
+                "評判": -2
+              }
+            }
+          }
+        },
+        {
+          "text": "年長者に裁きを任せる",
+          "result": "古参の判断で争いは収まった。あなたは別の務めに戻った。",
+          "effect": {
+            "魅力": 1
+          }
+        }
+      ],
+      "body": "二人の家臣が境目の田をめぐって言い争っている。放っておけば、周囲の者まで二派に割れそうだ。",
+      "_file": "retainer-dispute.md"
+    },
+    {
+      "id": "daily-temple-repair",
+      "category": "community",
+      "cooldown_months": 60,
+      "age_min": 10,
+      "choices": [
+        {
+          "text": "蓄えから材木代を出し、寺の修繕を助ける",
+          "result": "屋根が直り、村人たちは雨の日も集まれるようになった。",
+          "effect": {
+            "所持金": -0.8,
+            "評判": 3,
+            "魅力": 1
+          }
+        },
+        {
+          "text": "村人に材木を集めてもらい、手間を分け合う",
+          "check": {
+            "stat": "魅力",
+            "difficulty": 58,
+            "success": {
+              "result": "村人が自ら手を挙げ、力を合わせて修繕した。",
+              "effect": {
+                "評判": 2,
+                "魅力": 1
+              }
+            },
+            "failure": {
+              "result": "集まりは悪く、修繕は次の季節まで持ち越しになった。",
+              "effect": {
+                "評判": -1
+              }
+            }
+          }
+        }
+      ],
+      "body": "雨漏りのする寺から、屋根を直すための助けを求められた。金を出すか、人手を集めるか。",
+      "_file": "temple-repair.md"
+    },
+    {
+      "id": "daily-village-irrigation",
+      "category": "village",
+      "cooldown_months": 60,
+      "age_min": 12,
+      "choices": [
+        {
+          "text": "村人と相談し、用水路の普請を進める",
+          "check": {
+            "stat": "政治",
+            "difficulty": 55,
+            "success": {
+              "result": "話し合いがまとまり、田に水が行き渡った。村人はあなたを頼りにしている。",
+              "effect": {
+                "政治": 1,
+                "評判": 2
+              }
+            },
+            "failure": {
+              "result": "負担の分け方で揉め、普請は遅れた。費用もかさんだ。",
+              "effect": {
+                "評判": -2,
+                "所持金": -0.5
+              }
+            }
+          }
+        },
+        {
+          "text": "まずは小さな水路だけ直し、残りは来年に回す",
+          "result": "大きな成果はないが、無理のない範囲で田を守った。",
+          "effect": {
+            "所持金": -0.2,
+            "評判": 1
+          }
+        }
+      ],
+      "body": "日照りが続き、村から用水路を直してほしいと願いが届いた。費用を持つか、村人の手を借りるか。",
+      "_file": "village-irrigation.md"
+    },
+    {
+      "id": "daily-winter-supplies",
+      "category": "household",
+      "cooldown_months": 48,
+      "age_min": 0,
+      "choices": [
+        {
+          "text": "蓄えを使い、家中に冬支度を配る",
+          "result": "冷え込む前に薪と食糧が行き渡り、家の者たちは安堵した。",
+          "effect": {
+            "所持金": -0.6,
+            "健康": 2,
+            "評判": 1
+          }
+        },
+        {
+          "text": "皆で薪を集め、支出を抑える",
+          "check": {
+            "stat": "武勇",
+            "difficulty": 45,
+            "success": {
+              "result": "雪が深くなる前に薪を集めきり、よい鍛錬にもなった。",
+              "effect": {
+                "武勇": 1
+              }
+            },
+            "failure": {
+              "result": "無理をした者が腰を痛め、家の仕事が遅れた。",
+              "effect": {
+                "健康": -3
+              }
+            }
+          }
+        }
+      ],
+      "body": "冬の気配が早く訪れた。家中に薪や食糧を配るか、皆で集めて出費を減らすか。",
+      "_file": "winter.md"
+    },
+    {
+      "id": "daily-young-training",
+      "category": "growth",
+      "cooldown_months": 36,
+      "age_min": 7,
+      "age_max": 24,
+      "choices": [
+        {
+          "text": "弓の稽古を願い出る",
+          "check": {
+            "stat": "武勇",
+            "difficulty": 50,
+            "success": {
+              "result": "師の目に留まり、構えを教わった。",
+              "effect": {
+                "武勇": 1,
+                "評判": 1
+              }
+            },
+            "failure": {
+              "result": "焦って力み、手を痛めた。しばらく稽古は休みだ。",
+              "effect": {
+                "健康": -4
+              }
+            }
+          }
+        },
+        {
+          "text": "寺で書物を読ませてもらう",
+          "result": "古い兵法書を読み、戦の備えを考える時間を得た。",
+          "effect": {
+            "知略": 1
+          }
+        }
+      ],
+      "body": "近隣に名の知られた師が逗留している。弓を習うか、寺の書物を借りるか、年長者たちが尋ねてきた。",
+      "_file": "young-training.md"
+    }
+  ],
   "planned_event_ids": [
     "masamune-1600-dewa",
     "masamune-1614-osaka",
