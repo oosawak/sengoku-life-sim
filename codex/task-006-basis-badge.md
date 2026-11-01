@@ -34,3 +34,5 @@
 - 公開側（ https://oosawak.github.io/sengoku-life-sim/ ）で、fact / legend / fiction の3種の印がそれぞれ実際のイベント表示で確認できること。
 - 報告書を `reports/2026-11-01-task006-basis-badge.md` に置く（変更点、確認結果、未確認事項）。
 - このファイルの末尾に「状態: 完了（報告: reports/＜報告書ファイル名＞）」を追記する。
+
+状態: 完了（報告: reports/2026-11-01-task006-basis-badge.md）
