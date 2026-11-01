@@ -474,7 +474,12 @@ if (typeof document !== "undefined" && document.getElementById("app")) {
     const box = $("event-box");
     const month = event.month || Engine.eventMonth(event);
     const kind = event.daily ? `<span class="event-kind">日々の出来事 ／ ${event.category}</span>` : `<span class="event-kind historical">史実の出来事</span>`;
-    box.innerHTML = `${kind}<h3>${event.year}年${month}月 ${event.title}（${state.age}歳）</h3><p>${event.body || ""}</p>`;
+    const basisLabels = { fact: "史実", legend: "伝承", fiction: "創作" };
+    const basisLabel = basisLabels[event.basis];
+    const basis = basisLabel
+      ? `<span class="basis-badge ${event.basis}" title="作品内での情報の種別の目安" aria-label="種別の目安: ${basisLabel}">${basisLabel}</span>`
+      : "";
+    box.innerHTML = `${kind}${basis}<h3>${event.year}年${month}月 ${event.title}（${state.age}歳）</h3><p>${event.body || ""}</p>`;
     for (const choice of event.choices || []) {
       const card = document.createElement("div");
       card.className = "choice-card";
