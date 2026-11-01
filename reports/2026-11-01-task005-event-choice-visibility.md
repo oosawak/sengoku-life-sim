@@ -14,11 +14,10 @@
 
 - `app.js` のイベント開始・選択・生涯終了で画面状態を切り替える箇所を確認した。
 - `style.css` のイベント中レイアウトを確認した。手動ブラウザー操作による実機表示確認は未実施。
-- 作業時点で `git pull --ff-only` は `.git/FETCH_HEAD` の書き込み権限不足で失敗した。直前の作業履歴は `b72e738` で、ローカルの変更前にリモートとの差分確認はできていない。
-- 常駐指示 (`codex/standing-instructions.md`) は、サイトファイルを含む push を指示書が明示した場合だけ許可している。このタスクの公開許可は未取得のため、公開反映はしていない。ユーザーへ公開許可を確認中。
-- ローカルコミット: `3b9df31 fix: keep event choices visible without scrolling`。
+- push前に `git pull --ff-only` を実行し、`Already up to date.` を確認した。
+- ローカルコミット `f639560 fix: keep event choices visible without scrolling` を `main` へ push した。GitHub Pages run `41267034263` は成功。
+- 公開ページはHTTP 200。公開CSS・JavaScriptを取得し、イベント中のログ非表示、本文欄内スクロール、画面状態制御の反映を確認した。
 
 ## 未確認事項
 
-- 実機の画面サイズごとの選択肢の収まりは、ブラウザーで未確認。
-- 公開側への反映と push は未実施。ローカルコミット済み。
+- 手動ブラウザー操作による端末ごとの実表示確認は未実施。
