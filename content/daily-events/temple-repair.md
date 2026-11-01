@@ -1,5 +1,6 @@
 ---
 id: daily-temple-repair
+basis: fiction
 category: community
 cooldown_months: 60
 age_min: 10

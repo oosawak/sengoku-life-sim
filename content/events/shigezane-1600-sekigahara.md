@@ -1,5 +1,6 @@
 ---
 id: shigezane-1600-sekigahara
+basis: fact
 year: 1600
 month: 7
 day: 25

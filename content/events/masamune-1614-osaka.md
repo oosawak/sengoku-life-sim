@@ -1,5 +1,6 @@
 ---
 id: masamune-1614-osaka
+basis: fact
 year: 1614
 month: 11
 who: date-masamune

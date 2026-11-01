@@ -1,5 +1,6 @@
 ---
 id: daily-young-training
+basis: fiction
 category: growth
 cooldown_months: 36
 age_min: 7

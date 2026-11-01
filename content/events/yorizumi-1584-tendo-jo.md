@@ -1,5 +1,6 @@
 ---
 id: yorizumi-1584-tendo-jo
+basis: fact
 year: 1584
 month: 10
 who: tendo-yorizumi

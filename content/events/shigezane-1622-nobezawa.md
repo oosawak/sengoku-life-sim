@@ -1,5 +1,6 @@
 ---
 id: shigezane-1622-nobezawa
+basis: fact
 year: 1622
 who: date-shigezane
 type: history

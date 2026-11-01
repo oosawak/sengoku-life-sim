@@ -1,5 +1,6 @@
 ---
 id: kanetsugu-1598-aizu
+basis: fact
 year: 1598
 month: 3
 who: naoe-kanetsugu

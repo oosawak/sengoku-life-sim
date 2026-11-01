@@ -1,5 +1,6 @@
 ---
 id: common-1611-kecho-earthquake
+basis: fact
 year: 1611
 month: 10
 who: common

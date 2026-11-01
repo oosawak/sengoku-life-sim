@@ -1,5 +1,6 @@
 ---
 id: yorizumi-1600-dewa
+basis: fact
 year: 1600
 month: 9
 who: tendo-yorizumi

@@ -1,5 +1,6 @@
 ---
 id: daily-village-irrigation
+basis: fiction
 category: village
 cooldown_months: 60
 age_min: 12

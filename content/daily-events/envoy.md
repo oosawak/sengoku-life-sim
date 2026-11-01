@@ -1,5 +1,6 @@
 ---
 id: daily-envoy
+basis: fiction
 category: relationships
 cooldown_months: 60
 age_min: 15

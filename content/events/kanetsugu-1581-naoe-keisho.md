@@ -1,5 +1,6 @@
 ---
 id: kanetsugu-1581-naoe-keisho
+basis: fact
 year: 1581
 month: 9
 day: 9

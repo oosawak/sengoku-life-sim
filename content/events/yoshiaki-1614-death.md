@@ -1,5 +1,6 @@
 ---
 id: yoshiaki-1614-death
+basis: fact
 year: 1614
 month: 1
 day: 18

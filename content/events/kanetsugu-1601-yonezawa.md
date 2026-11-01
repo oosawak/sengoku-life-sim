@@ -1,5 +1,6 @@
 ---
 id: kanetsugu-1601-yonezawa
+basis: fact
 year: 1601
 who: naoe-kanetsugu
 type: history

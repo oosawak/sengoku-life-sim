@@ -1,5 +1,6 @@
 ---
 id: shigezane-1589-suriagehara
+basis: fact
 year: 1589
 month: 6
 who: date-shigezane

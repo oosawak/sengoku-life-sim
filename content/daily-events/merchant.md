@@ -1,5 +1,6 @@
 ---
 id: daily-merchant-proposal
+basis: fiction
 category: economy
 cooldown_months: 60
 age_min: 15

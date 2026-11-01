@@ -1,5 +1,6 @@
 ---
 id: shigezane-1595-shuppon
+basis: fact
 year: 1595
 who: date-shigezane
 type: history

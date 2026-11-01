@@ -1,5 +1,6 @@
 ---
 id: daily-retainer-dispute
+basis: fiction
 category: household
 cooldown_months: 48
 age_min: 15

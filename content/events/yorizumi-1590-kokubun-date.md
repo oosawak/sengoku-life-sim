@@ -1,5 +1,6 @@
 ---
 id: yorizumi-1590-kokubun-date
+basis: fact
 year: 1590
 month: 1
 who: tendo-yorizumi

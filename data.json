@@ -177,6 +177,7 @@
   "events": [
     {
       "id": "yoshiaki-1574-succession",
+      "basis": "fact",
       "year": 1574,
       "who": "mogami-yoshiaki",
       "type": "history",
@@ -204,6 +205,7 @@
     },
     {
       "id": "kanetsugu-1581-naoe-keisho",
+      "basis": "fact",
       "year": 1581,
       "month": 9,
       "day": 9,
@@ -233,6 +235,7 @@
     },
     {
       "id": "yorizumi-1584-tendo-jo",
+      "basis": "fact",
       "year": 1584,
       "month": 10,
       "who": "tendo-yorizumi",
@@ -263,6 +266,7 @@
     },
     {
       "id": "yoshiaki-1584-tendo",
+      "basis": "fact",
       "year": 1584,
       "month": 10,
       "who": "mogami-yoshiaki",
@@ -293,6 +297,7 @@
     },
     {
       "id": "masamune-1585-hitotoribashi",
+      "basis": "fact",
       "year": 1585,
       "month": 11,
       "who": "date-masamune",
@@ -323,6 +328,7 @@
     },
     {
       "id": "shigezane-1585-hitotoribashi",
+      "basis": "fact",
       "year": 1585,
       "month": 11,
       "who": "date-shigezane",
@@ -353,6 +359,7 @@
     },
     {
       "id": "yoshiaki-1588-osaki",
+      "basis": "fact",
       "year": 1588,
       "month": 1,
       "who": "mogami-yoshiaki",
@@ -383,6 +390,7 @@
     },
     {
       "id": "masamune-1589-suriagehara",
+      "basis": "fact",
       "year": 1589,
       "month": 6,
       "who": "date-masamune",
@@ -412,6 +420,7 @@
     },
     {
       "id": "shigezane-1589-suriagehara",
+      "basis": "fact",
       "year": 1589,
       "month": 6,
       "who": "date-shigezane",
@@ -441,6 +450,7 @@
     },
     {
       "id": "yorizumi-1590-kokubun-date",
+      "basis": "fact",
       "year": 1590,
       "month": 1,
       "who": "tendo-yorizumi",
@@ -469,6 +479,7 @@
     },
     {
       "id": "masamune-1590-odahara",
+      "basis": "fact",
       "year": 1590,
       "month": 6,
       "who": "date-masamune",
@@ -498,6 +509,7 @@
     },
     {
       "id": "shigezane-1595-shuppon",
+      "basis": "fact",
       "year": 1595,
       "who": "date-shigezane",
       "type": "history",
@@ -534,6 +546,7 @@
     },
     {
       "id": "kanetsugu-1598-aizu",
+      "basis": "fact",
       "year": 1598,
       "month": 3,
       "who": "naoe-kanetsugu",
@@ -562,6 +575,7 @@
     },
     {
       "id": "kanetsugu-1600-naoejo",
+      "basis": "fact",
       "year": 1600,
       "month": 4,
       "who": "naoe-kanetsugu",
@@ -590,6 +604,7 @@
     },
     {
       "id": "shigezane-1600-sekigahara",
+      "basis": "fact",
       "year": 1600,
       "month": 7,
       "day": 25,
@@ -619,6 +634,7 @@
     },
     {
       "id": "kanetsugu-1600-hasedo",
+      "basis": "fact",
       "year": 1600,
       "month": 9,
       "who": "naoe-kanetsugu",
@@ -648,6 +664,7 @@
     },
     {
       "id": "masamune-1600-dewa",
+      "basis": "fact",
       "year": 1600,
       "month": 9,
       "day": 17,
@@ -679,6 +696,7 @@
     },
     {
       "id": "yorizumi-1600-dewa",
+      "basis": "fact",
       "year": 1600,
       "month": 9,
       "who": "tendo-yorizumi",
@@ -707,6 +725,7 @@
     },
     {
       "id": "yoshiaki-1600-hasedo",
+      "basis": "fact",
       "year": 1600,
       "month": 9,
       "who": "mogami-yoshiaki",
@@ -737,6 +756,7 @@
     },
     {
       "id": "kanetsugu-1601-yonezawa",
+      "basis": "fact",
       "year": 1601,
       "who": "naoe-kanetsugu",
       "type": "history",
@@ -764,6 +784,7 @@
     },
     {
       "id": "yorizumi-tagajo-sekihi",
+      "basis": "legend",
       "year": 1604,
       "who": "tendo-yorizumi",
       "type": "history",
@@ -791,6 +812,7 @@
     },
     {
       "id": "yorizumi-rifu-later",
+      "basis": "legend",
       "year": 1610,
       "who": "tendo-yorizumi",
       "type": "history",
@@ -818,6 +840,7 @@
     },
     {
       "id": "common-1611-kecho-earthquake",
+      "basis": "fact",
       "year": 1611,
       "month": 10,
       "who": "common",
@@ -850,6 +873,7 @@
     },
     {
       "id": "yoshiaki-1614-death",
+      "basis": "fact",
       "year": 1614,
       "month": 1,
       "day": 18,
@@ -879,6 +903,7 @@
     },
     {
       "id": "masamune-1614-osaka",
+      "basis": "fact",
       "year": 1614,
       "month": 11,
       "who": "date-masamune",
@@ -907,6 +932,7 @@
     },
     {
       "id": "shigezane-1622-nobezawa",
+      "basis": "fact",
       "year": 1622,
       "who": "date-shigezane",
       "type": "history",
@@ -936,6 +962,7 @@
   "daily_events": [
     {
       "id": "daily-envoy",
+      "basis": "fiction",
       "category": "relationships",
       "cooldown_months": 60,
       "age_min": 15,
@@ -973,6 +1000,7 @@
     },
     {
       "id": "daily-harvest-shortfall",
+      "basis": "fiction",
       "category": "economy",
       "cooldown_months": 72,
       "age_min": 12,
@@ -1018,6 +1046,7 @@
     },
     {
       "id": "daily-traveling-doctor",
+      "basis": "fiction",
       "category": "health",
       "cooldown_months": 48,
       "age_min": 0,
@@ -1056,6 +1085,7 @@
     },
     {
       "id": "daily-merchant-proposal",
+      "basis": "fiction",
       "category": "economy",
       "cooldown_months": 60,
       "age_min": 15,
@@ -1093,6 +1123,7 @@
     },
     {
       "id": "daily-retainer-dispute",
+      "basis": "fiction",
       "category": "household",
       "cooldown_months": 48,
       "age_min": 15,
@@ -1130,6 +1161,7 @@
     },
     {
       "id": "daily-temple-repair",
+      "basis": "fiction",
       "category": "community",
       "cooldown_months": 60,
       "age_min": 10,
@@ -1169,6 +1201,7 @@
     },
     {
       "id": "daily-village-irrigation",
+      "basis": "fiction",
       "category": "village",
       "cooldown_months": 60,
       "age_min": 12,
@@ -1208,6 +1241,7 @@
     },
     {
       "id": "daily-winter-supplies",
+      "basis": "fiction",
       "category": "household",
       "cooldown_months": 48,
       "age_min": 0,
@@ -1246,6 +1280,7 @@
     },
     {
       "id": "daily-young-training",
+      "basis": "fiction",
       "category": "growth",
       "cooldown_months": 36,
       "age_min": 7,

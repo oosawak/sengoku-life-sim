@@ -1,5 +1,6 @@
 ---
 id: yoshiaki-1574-succession
+basis: fact
 year: 1574
 who: mogami-yoshiaki
 type: history

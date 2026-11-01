@@ -1,5 +1,6 @@
 ---
 id: kanetsugu-1600-naoejo
+basis: fact
 year: 1600
 month: 4
 who: naoe-kanetsugu

@@ -1,5 +1,6 @@
 ---
 id: daily-harvest-shortfall
+basis: fiction
 category: economy
 cooldown_months: 72
 age_min: 12

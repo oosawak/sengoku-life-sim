@@ -1,5 +1,6 @@
 ---
 id: yoshiaki-1588-osaki
+basis: fact
 year: 1588
 month: 1
 who: mogami-yoshiaki

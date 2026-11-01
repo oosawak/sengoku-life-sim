@@ -1,5 +1,6 @@
 ---
 id: masamune-1600-dewa
+basis: fact
 year: 1600
 month: 9
 day: 17

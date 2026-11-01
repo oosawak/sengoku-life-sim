@@ -1,5 +1,6 @@
 ---
 id: daily-traveling-doctor
+basis: fiction
 category: health
 cooldown_months: 48
 age_min: 0

@@ -1,5 +1,6 @@
 ---
 id: masamune-1590-odahara
+basis: fact
 year: 1590
 month: 6
 who: date-masamune

@@ -1,5 +1,6 @@
 ---
 id: yorizumi-rifu-later
+basis: legend
 year: 1610
 who: tendo-yorizumi
 type: history

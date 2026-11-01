@@ -1,5 +1,6 @@
 ---
 id: yorizumi-tagajo-sekihi
+basis: legend
 year: 1604
 who: tendo-yorizumi
 type: history

@@ -1,5 +1,6 @@
 ---
 id: yoshiaki-1584-tendo
+basis: fact
 year: 1584
 month: 10
 who: mogami-yoshiaki

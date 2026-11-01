@@ -1,5 +1,6 @@
 ---
 id: shigezane-1585-hitotoribashi
+basis: fact
 year: 1585
 month: 11
 who: date-shigezane
