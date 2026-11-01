@@ -111,11 +111,29 @@ body.life-active .change-toast { flex: 0 0 auto; }
 body.life-active .life-hud { margin: 8px 0; }
 body.life-active .event { flex: 1 1 0; }
 body.life-active .log-panel { flex: 0 1 24%; }
+body.event-active .log-panel,
+body.event-active .life-controls .focus-picker,
+body.event-active .change-toast { display: none; }
+body.event-active .life-head { gap: 6px; padding-bottom: 6px; }
+body.event-active .life-name { font-size: 18px; }
+body.event-active .life-meta { font-size: 11px; }
+body.event-active .life-hud { padding: 4px 8px; margin: 3px 0; }
+body.event-active .life-stats { display: none; }
+body.event-active .hud-meta { margin: 0; padding: 0; border: 0; gap: 4px 12px; font-size: 11px; }
+body.event-active .life-controls { justify-content: flex-end; margin: 3px 0; }
+body.event-active .event { display: flex; flex-direction: column; flex: 1 1 0; overflow: hidden; margin-top: 4px; padding: 10px; }
+body.event-active .event h3 { flex: 0 0 auto; margin-bottom: 4px; font-size: 17px; }
+body.event-active .event > p { flex: 0 1 auto; max-height: 13vh; min-height: 0; overflow-y: auto; margin: 4px 0; line-height: 1.5; overscroll-behavior: contain; }
+body.event-active .choice-card { flex: 0 0 auto; padding: 5px 0 0; line-height: 1.3; }
+body.event-active .choice-result { display: none; }
+body.event-active .effect-preview { margin-top: 3px; }
+body.event-active .choice-card button { padding: 8px 12px; font-size: 14px; margin: 5px 0 0; }
 @media (max-height: 680px) {
   body.life-active #screen-life { padding: 8px 12px; }
   body.life-active .life-hud { padding: 8px; margin: 5px 0; }
   body.life-active .hud-meta { margin-top: 6px; padding-top: 5px; }
   body.life-active .log-panel { flex-basis: 20%; }
+  body.event-active .event > p { max-height: 10vh; }
 }
 @media (max-width: 380px) {
   body.life-active #app { padding: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom)); }

@@ -353,6 +353,7 @@ if (typeof document !== "undefined" && document.getElementById("app")) {
     state = Engine.createState(person);
     paused = false; waitingForChoice = false; speed = 1; accumulator = 0;
     document.body.classList.add("life-active");
+    document.body.classList.remove("event-active");
     $("life-name").textContent = person.name;
     $("life-log").innerHTML = `<p><span class="year">${state.year}年${state.month}月</span> ${person.kuni}に生まれる。0歳。</p>`;
     $("event-box").classList.add("hidden");
@@ -469,6 +470,7 @@ if (typeof document !== "undefined" && document.getElementById("app")) {
 
   function showEvent(event) {
     paused = true; waitingForChoice = true; accumulator = 0; updateControls();
+    document.body.classList.add("event-active");
     const box = $("event-box");
     const month = event.month || Engine.eventMonth(event);
     const kind = event.daily ? `<span class="event-kind">日々の出来事 ／ ${event.category}</span>` : `<span class="event-kind historical">史実の出来事</span>`;
@@ -514,6 +516,7 @@ if (typeof document !== "undefined" && document.getElementById("app")) {
     if (effectText) showChangeToast(effectText);
     updateMeta(); updateHud();
     $("event-box").classList.add("hidden");
+    document.body.classList.remove("event-active");
     if (state.year >= Engine.effectiveDeath(person, state.lifeMod) && state.month === 12) { finishLife(); return; }
     const next = queue[queueIndex];
     if (next && next.year === state.year && Engine.eventMonth(next) === state.month) {
@@ -524,7 +527,7 @@ if (typeof document !== "undefined" && document.getElementById("app")) {
 
   function finishLife() {
     stopTimer(); paused = true;
-    document.body.classList.remove("life-active");
+    document.body.classList.remove("life-active", "event-active");
     const deathYear = Engine.effectiveDeath(person, state.lifeMod);
     const shukugan = Engine.evaluateShukugan(person, state.flags, deathYear);
     const end = { deathYear, diff: deathYear - person.died, shukugan, reputation: state.reputation,
