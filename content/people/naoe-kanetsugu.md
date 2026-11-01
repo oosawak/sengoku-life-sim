@@ -6,6 +6,8 @@ alias: 与六 / 愛の兜
 house: 上杉家
 kuni: 越後
 born: 1560
+birth_month: 4
+birth_month_note: 割当て（試作値）。月日を特定できる確かな資料がないため、ゲーム上の誕生月として設定。
 died: 1619
 rank: 家老級
 stats: { 武勇: 70, 知略: 92, 政治: 88, 魅力: 80, 家柄: 48 }

@@ -10,13 +10,21 @@
 <main id="app">
   <!-- 表紙 -->
   <section id="screen-title" class="screen">
-    <p class="kicker">試作 v0.1 ／ 人物5人・出来事16件</p>
+    <p class="kicker">試作 v0.2 ／ 人物5人・出来事16件</p>
     <h1>奥羽<br>一生録</h1>
     <p class="sub">おうう・いっしょうろく</p>
     <p class="lead">天が決めた戦国人物に生まれ、<br>史実の出来事と選択の中で一生を生きる。<br>舞台は宮城・山形・福島。</p>
     <button id="btn-born" class="primary">生まれる</button>
     <button id="btn-collection" class="ghost">前世の記録（コレクション）</button>
     <div id="collection-panel" class="panel hidden"></div>
+    <div class="settings-row">
+      <label for="setting-event-frequency">日常の出来事（第2弾）の頻度</label>
+      <select id="setting-event-frequency">
+        <option value="few">少ない</option>
+        <option value="normal">ふつう</option>
+        <option value="many">多い</option>
+      </select>
+    </div>
     <p class="note">記録はこの端末の中だけに保存されます。公開はまだしていません。</p>
   </section>
 
@@ -36,14 +44,28 @@
         <div id="life-meta" class="life-meta"></div>
       </div>
       <div class="life-nums">
-        <div>評判 <span id="life-reputation">0</span></div>
         <div>史実の没年 <span id="life-historical-death"></span></div>
       </div>
     </header>
     <div class="life-controls">
       <button id="btn-pause" class="ghost small">止める</button>
-      <button id="btn-speed" class="ghost small">速くする ×3</button>
+      <button id="btn-speed" class="ghost small">×1</button>
     </div>
+    <section class="life-hud" aria-label="現在の身上">
+      <div id="life-stats" class="life-stats"></div>
+      <div class="hud-meta">
+        <span>評判 <b id="life-reputation">0</b></span>
+        <span>所持金 <b><span id="life-money">0.0</span>貫</b></span>
+        <span>健康 <b id="life-health">健やか</b></span>
+      </div>
+      <label class="focus-picker" for="life-focus">日々の心がけ
+        <select id="life-focus">
+          <option>武芸稽古</option><option>学問</option><option>政務</option>
+          <option>人付き合い</option><option>家の仕事・商い</option><option>休養</option>
+        </select>
+      </label>
+    </section>
+    <div id="change-toast" class="change-toast" aria-live="polite"></div>
     <div id="life-log" class="log"></div>
     <div id="event-box" class="event hidden"></div>
   </section>

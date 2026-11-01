@@ -6,6 +6,8 @@ alias: 羽州の狐
 house: 最上家
 kuni: 出羽
 born: 1546
+birth_month: 1
+birth_month_note: 割当て（試作値）。月日を特定できる確かな資料がないため、ゲーム上の誕生月として設定。
 died: 1614
 rank: 大名級
 stats: { 武勇: 82, 知略: 88, 政治: 80, 魅力: 58, 家柄: 78 }

@@ -1,11 +1,48 @@
 "use strict";
-/* 奥羽一生録 試作 v0.1 エンジン（旧仮称: 戦国人生シミュレーション）
-   純粋な判定ロジック（Engine）と、ブラウザ画面の制御を分けてある。
-   Node から Engine だけ読み込んで検証できる。 */
+/* 奥羽一生録: 月ごとの生涯進行と画面制御。 */
 
-const RANK_WEIGHTS = { "大名級": 10, "家老級": 20, "国衆": 30 };
+const GAME_CONFIG = {
+  monthDurationMs: 240,
+  frameDurationMs: 10,
+  speeds: [1, 5, 10, 20],
+  stats: ["武勇", "知略", "政治", "魅力", "家柄"],
+  focuses: {
+    "武芸稽古": { stat: "武勇", gain: 0.12, cost: 0.2 },
+    "学問": { stat: "知略", gain: 0.12, cost: 0.1 },
+    "政務": { stat: "政治", gain: 0.12, cost: 0.1 },
+    "人付き合い": { stat: "魅力", gain: 0.12, cost: 0.2 },
+    "家の仕事・商い": { stat: null, gain: 0, cost: 0 },
+    "休養": { stat: null, gain: 0, cost: 0 },
+  },
+  // 内部段階は収入計算に使う。出世と人物別の役職名は第2弾。
+  ranks: [
+    { label: "家中の者", annualIncome: 2 },
+    { label: "侍大将", annualIncome: 6 },
+    { label: "城主・重臣", annualIncome: 18 },
+    { label: "家中筆頭", annualIncome: 36 },
+    { label: "大名", annualIncome: 60 },
+  ],
+  startRankLevel: { "国衆": 0, "家老級": 1, "大名級": 4 },
+  startMoney: { "国衆": 4, "家老級": 8, "大名級": 20 },
+  growthDiminishing: [{ at: 95, rate: 0.25 }, { at: 80, rate: 0.5 }],
+  martialToTactics: { age50: 0.5, age65: 1 },
+  aging: { age50: 0.5, age65: 1 },
+  eventFrequencies: {
+    few: { label: "少ない", monthlyChance: 0.01, annualChance: 0.25 },
+    normal: { label: "ふつう", monthlyChance: 0.03, annualChance: 0.55 },
+    many: { label: "多い", monthlyChance: 0.06, annualChance: 0.8 },
+  },
+};
 
 const Engine = {
+  ageAt(person, year, month) {
+    return year - person.born - (month < (person.birth_month || 1) ? 1 : 0);
+  },
+
+  eventMonth(event) {
+    return Number.isInteger(event.month) && event.month >= 1 && event.month <= 12 ? event.month : 1;
+  },
+
   pickPerson(people, lastId, rng = Math.random) {
     const weighted = [];
     for (const p of people) {
@@ -14,7 +51,6 @@ const Engine = {
     }
     if (!weighted.length) return null;
     let picked = weighted[Math.floor(rng() * weighted.length)];
-    // 直前と同じ人物なら1回だけ引き直す
     if (lastId && picked.id === lastId && people.length > 1) {
       picked = weighted[Math.floor(rng() * weighted.length)];
     }
@@ -22,26 +58,124 @@ const Engine = {
   },
 
   eventsForPerson(person, events) {
-    const list = events.filter((e) => {
-      if (e.who === person.id) {
-        return e.year >= person.born && e.year <= person.died;
+    const birthMonth = person.birth_month || 1;
+    return events.filter((event) => {
+      const month = this.eventMonth(event);
+      if (event.year < person.born || event.year > person.died) return false;
+      if (event.who === person.id) {
+        return event.year > person.born || month >= birthMonth;
       }
-      if (e.who === "common") {
-        const houses = e.houses || [];
-        // 共通イベントは没年より前の年だけ（没年同年の災害などは月の前後が曖昧なため対象外）
-        return houses.includes(person.house) && e.year > person.born && e.year < person.died;
+      if (event.who === "common") {
+        return (event.houses || []).includes(person.house) &&
+          event.year > person.born && event.year < person.died;
       }
       return false;
-    });
-    return list.sort((a, b) => a.year - b.year || (a.month || 0) - (b.month || 0) || String(a.id).localeCompare(String(b.id)));
+    }).sort((a, b) => a.year - b.year || this.eventMonth(a) - this.eventMonth(b) ||
+      String(a.id).localeCompare(String(b.id)));
+  },
+
+  startingRank(person) {
+    return GAME_CONFIG.startRankLevel[person.rank] ?? 0;
+  },
+
+  createState(person) {
+    const rankLevel = this.startingRank(person);
+    return {
+      year: person.born,
+      month: person.birth_month || 1,
+      age: 0,
+      stats: Object.fromEntries(GAME_CONFIG.stats.map((key) => [key, Number(person.stats[key]) || 1])),
+      initialStats: Object.fromEntries(GAME_CONFIG.stats.map((key) => [key, Number(person.stats[key]) || 1])),
+      reputation: 0,
+      lifeMod: 0,
+      health: 100,
+      money: GAME_CONFIG.startMoney[person.rank] ?? 4,
+      rankLevel,
+      focus: "学問",
+      incomeRemainder: 0,
+      flags: new Set(),
+      history: [],
+    };
+  },
+
+  clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
   },
 
   applyChoice(state, choice) {
     const effect = choice.effect || {};
-    state.reputation += effect["評判"] || 0;
-    state.lifeMod += effect["寿命"] || 0;
+    for (const stat of GAME_CONFIG.stats) {
+      if (typeof effect[stat] === "number") state.stats[stat] = this.clamp(state.stats[stat] + effect[stat], 1, 100);
+    }
+    state.reputation += Number(effect["評判"]) || 0;
+    state.lifeMod += Number(effect["寿命"]) || 0;
+    if (typeof effect["健康"] === "number") state.health = this.clamp(state.health + effect["健康"], 0, 100);
+    if (typeof effect["所持金"] === "number") state.money = Math.max(0, Math.round((state.money + effect["所持金"]) * 10) / 10);
     if (choice.flag) state.flags.add(choice.flag);
     return state;
+  },
+
+  monthlyIncome(state) {
+    const rank = GAME_CONFIG.ranks[state.rankLevel] || GAME_CONFIG.ranks[0];
+    // 0.1貫単位で余りを持ち越し、12か月の合計を年収と一致させる。
+    state.incomeRemainder += Math.round(rank.annualIncome * 10);
+    const tenths = Math.floor(state.incomeRemainder / 12);
+    state.incomeRemainder %= 12;
+    state.money = Math.round((state.money + tenths / 10) * 10) / 10;
+    return tenths / 10;
+  },
+
+  applyFocus(state) {
+    const focus = GAME_CONFIG.focuses[state.focus] || GAME_CONFIG.focuses["休養"];
+    if (state.focus === "家の仕事・商い") {
+      state.money = Math.round((state.money + 0.1) * 10) / 10;
+      return { cash: 0.1 };
+    }
+    if (state.focus === "休養") {
+      const before = state.health;
+      state.health = this.clamp(state.health + 1, 0, 100);
+      return { health: state.health - before };
+    }
+    if (state.money + 1e-9 < focus.cost) return { skipped: true, cost: focus.cost };
+    state.money = Math.round((state.money - focus.cost) * 10) / 10;
+    let gain = focus.gain;
+    const current = state.stats[focus.stat];
+    for (const rule of GAME_CONFIG.growthDiminishing) {
+      if (current >= rule.at) { gain *= rule.rate; break; }
+    }
+    if (state.focus === "武芸稽古") {
+      const age = state.age;
+      const redirect = age >= 65 ? GAME_CONFIG.martialToTactics.age65 : age >= 50 ? GAME_CONFIG.martialToTactics.age50 : 0;
+      const toTactics = Math.min(gain * redirect, Math.max(0, 100 - state.stats["知略"]));
+      state.stats["知略"] += toTactics;
+      state.stats["武勇"] = this.clamp(state.stats["武勇"] + gain - gain * redirect, 1, 100);
+      return { stat: focus.stat, gain: gain - gain * redirect, redirected: toTactics, cost: focus.cost };
+    }
+    const actualGain = Math.min(gain, 100 - state.stats[focus.stat]);
+    state.stats[focus.stat] += actualGain;
+    return { stat: focus.stat, gain: actualGain, cost: focus.cost };
+  },
+
+  ageOneYear(state) {
+    if (state.age < 50) return { loss: 0, transferred: 0 };
+    const decline = state.age >= 65 ? GAME_CONFIG.aging.age65 : GAME_CONFIG.aging.age50;
+    const actual = Math.min(decline, Math.max(0, state.stats["武勇"] - 1));
+    const transferred = Math.min(actual, Math.max(0, 100 - state.stats["知略"]));
+    state.stats["武勇"] -= actual;
+    state.stats["知略"] += transferred;
+    return { loss: actual, transferred };
+  },
+
+  processMonth(person, state) {
+    if (state.month === 12) { state.month = 1; state.year += 1; }
+    else state.month += 1;
+    const income = this.monthlyIncome(state);
+    state.age = this.ageAt(person, state.year, state.month);
+    const focus = this.applyFocus(state);
+    let aging = { loss: 0, transferred: 0 };
+    const birthday = state.month === (person.birth_month || 1) && state.year > person.born;
+    if (birthday) aging = this.ageOneYear(state);
+    return { year: state.year, month: state.month, age: state.age, income, focus, birthday, aging };
   },
 
   effectiveDeath(person, lifeMod) {
@@ -52,265 +186,319 @@ const Engine = {
     const has = (f) => flags.has(f);
     switch (person.id) {
       case "date-masamune":
-        if (deathYear >= 1601 && has("odawara-joined")) {
-          return { grade: "宿願成就", reason: "秀吉に従って家を残し、仙台を開くところまで生きた。" };
-        }
-        if (deathYear >= 1601) {
-          return { grade: "あと一歩", reason: "仙台の時代まで生きたが、小田原での判断が宿願の形を曇らせた。" };
-        }
+        if (deathYear >= 1601 && has("odawara-joined")) return { grade: "宿願成就", reason: "秀吉に従って家を残し、仙台を開くところまで生きた。" };
+        if (deathYear >= 1601) return { grade: "あと一歩", reason: "仙台の時代まで生きたが、小田原での判断が宿願の形を曇らせた。" };
         return { grade: "無念", reason: "仙台を開く前に一生が終わった。" };
       case "date-shigezane":
-        if (has("returned-to-date")) {
-          return { grade: "宿願成就", reason: "一度は離れたが、最後は伊達へ戻った。" };
-        }
-        if (has("shuppon-not-enemy")) {
-          return { grade: "あと一歩", reason: "敵には付かなかった。だが、戻るところまでは至らなかった。" };
-        }
-        if (has("shuppon-served-other")) {
-          return { grade: "無念", reason: "他家に仕え、伊達へ戻る道は閉ざされた。" };
-        }
+        if (has("returned-to-date")) return { grade: "宿願成就", reason: "一度は離れたが、最後は伊達へ戻った。" };
+        if (has("shuppon-not-enemy")) return { grade: "あと一歩", reason: "敵には付かなかった。だが、戻るところまでは至らなかった。" };
+        if (has("shuppon-served-other")) return { grade: "無念", reason: "他家に仕え、伊達へ戻る道は閉ざされた。" };
         return { grade: "あと一歩", reason: "出奔の出来事を迎える前に一生が終わったか、別の道を生きた。" };
       case "tendo-yorizumi":
-        if (has("tendo-survived") && has("tendo-house-kept")) {
-          return { grade: "宿願成就", reason: "城は失ったが、天童の家名は残り、次へつながった。" };
-        }
-        if (has("tendo-survived")) {
-          return { grade: "あと一歩", reason: "生き延びはしたが、家を残す形までは作れなかった。" };
-        }
+        if (has("tendo-survived") && has("tendo-house-kept")) return { grade: "宿願成就", reason: "城は失ったが、天童の家名は残り、次へつながった。" };
+        if (has("tendo-survived")) return { grade: "あと一歩", reason: "生き延びはしたが、家を残す形までは作れなかった。" };
         return { grade: "無念", reason: "天童城とともに、家も絶えてしまった。" };
       case "mogami-yoshiaki":
-        if (has("hasedo-held")) {
-          return { grade: "宿願成就", reason: "長谷堂を守り抜き、最上は五十七万石の大名家になった。" };
-        }
-        if (deathYear >= 1614) {
-          return { grade: "あと一歩", reason: "最上を大きくはしたが、五十七万石の形までは届かなかった。" };
-        }
+        if (has("hasedo-held")) return { grade: "宿願成就", reason: "長谷堂を守り抜き、最上は五十七万石の大名家になった。" };
+        if (deathYear >= 1614) return { grade: "あと一歩", reason: "最上を大きくはしたが、五十七万石の形までは届かなかった。" };
         return { grade: "無念", reason: "最上を守り切る前に一生が終わった。" };
       case "naoe-kanetsugu":
-        if (has("yonezawa-all-retainers")) {
-          return { grade: "宿願成就", reason: "減封の後も人を減らさず、上杉の家を米沢へつないだ。" };
-        }
-        if (has("hasedo-attacked") || has("naoejo-sent")) {
-          return { grade: "あと一歩", reason: "上杉のために戦いはしたが、米沢で家を残す形までは作れなかった。" };
-        }
+        if (has("yonezawa-all-retainers")) return { grade: "宿願成就", reason: "減封の後も人を減らさず、上杉の家を米沢へつないだ。" };
+        if (has("hasedo-attacked") || has("naoejo-sent")) return { grade: "あと一歩", reason: "上杉のために戦いはしたが、米沢で家を残す形までは作れなかった。" };
         return { grade: "無念", reason: "上杉の家を残すところまで至らなかった。" };
-      default:
-        return { grade: "あと一歩", reason: "" };
+      default: return { grade: "あと一歩", reason: "" };
     }
   },
 
   buildRetsuden(person, history, end) {
-    const lines = [];
-    lines.push(`${person.name}（${person.yomi}）列伝`);
-    lines.push(`${person.born}年、${person.kuni}の${person.house}に生まれる。`);
-    lines.push(person.intro);
-    for (const h of history) {
-      lines.push(`${h.year}年「${h.title}」――${h.choiceText}。${h.result}`);
-    }
-    lines.push(
-      `${end.deathYear}年、${end.deathYear - person.born}歳で没した。史実では${person.died}年まで生きた（${person.died - person.born}歳）ので、今回は${end.diff >= 0 ? "史実より" + end.diff + "年長く" : "史実より" + Math.abs(end.diff) + "年短く"}生きた。`
-    );
+    const lines = [`${person.name}（${person.yomi}）列伝`, `${person.born}年、${person.kuni}の${person.house}に生まれる。`, person.intro];
+    for (const item of history) lines.push(`${item.year}年${item.month}月「${item.title}」――${item.choiceText}。${item.result}`);
+    lines.push(`${end.deathYear}年、${end.deathYear - person.born}歳で没した。史実では${person.died}年まで生きた（${person.died - person.born}歳）ので、今回は${end.diff >= 0 ? `史実より${end.diff}年長く` : `史実より${Math.abs(end.diff)}年短く`}生きた。`);
     lines.push(`宿願「${person.shukugan}」――${end.shukugan.grade}。${end.shukugan.reason}`);
     lines.push(`評判は${end.reputation}で一生を終えた。`);
+    lines.push("能力の変化: " + GAME_CONFIG.stats.map((key) => `${key} ${formatDelta(end.stats[key] - end.initialStats[key])}`).join(" ／ "));
+    lines.push(`所持金 ${end.money.toFixed(1)}貫`);
     return lines.join("\n");
   },
 };
 
+const RANK_WEIGHTS = { "大名級": 10, "家老級": 20, "国衆": 30 };
+function formatDelta(value) { return `${value >= 0 ? "+" : ""}${Number(value.toFixed(1))}`; }
+function healthLabel(value) { return value >= 70 ? "健やか" : value >= 40 ? "不調" : "重篤"; }
+
 if (typeof module !== "undefined" && module.exports) {
+  Engine.GAME_CONFIG = GAME_CONFIG;
   module.exports = Engine;
 }
 
-/* ===== ブラウザ画面の制御 ===== */
+/* ===== ブラウザ画面 ===== */
 if (typeof document !== "undefined" && document.getElementById("app")) {
   const COLLECTION_KEY = "sengoku-life-sim-collection-v1";
   const LAST_KEY = "sengoku-life-sim-last-person";
-
+  const SETTINGS_KEY = "ouu-game-settings-v1";
   let DATA = null;
   let person = null;
   let queue = [];
+  let queueIndex = 0;
   let state = null;
   let timer = null;
   let speed = 1;
   let paused = false;
-
+  let waitingForChoice = false;
+  let accumulator = 0;
+  let lastFrameAt = 0;
+  let toastTimer = null;
   const $ = (id) => document.getElementById(id);
   const screens = ["screen-title", "screen-birth", "screen-life", "screen-end"];
+
   function show(id) {
-    screens.forEach((s) => $(s).classList.toggle("hidden", s !== id));
+    screens.forEach((screen) => $(screen).classList.toggle("hidden", screen !== id));
     window.scrollTo(0, 0);
   }
-
   function loadCollection() {
     try { return JSON.parse(localStorage.getItem(COLLECTION_KEY)) || { persons: {}, battles: {} }; }
     catch { return { persons: {}, battles: {} }; }
   }
-  function saveCollection(c) { localStorage.setItem(COLLECTION_KEY, JSON.stringify(c)); }
+  function saveCollection(collection) { localStorage.setItem(COLLECTION_KEY, JSON.stringify(collection)); }
+  function loadSettings() {
+    try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || { eventFrequency: "normal" }; }
+    catch { return { eventFrequency: "normal" }; }
+  }
+  function saveSettings(settings) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
 
   function renderCollection() {
-    const c = loadCollection();
+    const collection = loadCollection();
     const panel = $("collection-panel");
-    const names = Object.keys(c.persons);
-    if (!names.length) {
-      panel.innerHTML = "<p>まだ記録はありません。まず一度、生まれてみてください。</p>";
-      return;
-    }
-    const personLines = names.map((id) => {
-      const p = DATA.people.find((x) => x.id === id);
-      return `${p ? p.name : id}：${c.persons[id]}回`;
+    const names = Object.keys(collection.persons);
+    if (!names.length) { panel.innerHTML = "<p>まだ記録はありません。まず一度、生まれてみてください。</p>"; return; }
+    const people = names.map((id) => {
+      const found = DATA.people.find((item) => item.id === id);
+      return `${found ? found.name : id}：${collection.persons[id]}回`;
     });
-    const battleLines = Object.keys(c.battles).map((b) => `${b}：${c.battles[b]}回`);
-    panel.innerHTML =
-      "<strong>生まれた人物</strong><br>" + personLines.join("<br>") +
-      (battleLines.length ? "<br><strong>参加した合戦</strong><br>" + battleLines.join("<br>") : "");
+    const battles = Object.keys(collection.battles).map((id) => `${id}：${collection.battles[id]}回`);
+    panel.innerHTML = "<strong>生まれた人物</strong><br>" + people.join("<br>") +
+      (battles.length ? "<br><strong>参加した合戦</strong><br>" + battles.join("<br>") : "");
+  }
+
+  function renderSettings() {
+    const settings = loadSettings();
+    $("setting-event-frequency").value = GAME_CONFIG.eventFrequencies[settings.eventFrequency] ? settings.eventFrequency : "normal";
   }
 
   function rollBirth() {
-    const lastId = localStorage.getItem(LAST_KEY);
-    person = Engine.pickPerson(DATA.people, lastId);
+    person = Engine.pickPerson(DATA.people, localStorage.getItem(LAST_KEY));
     localStorage.setItem(LAST_KEY, person.id);
-    const c = loadCollection();
-    c.persons[person.id] = (c.persons[person.id] || 0) + 1;
-    saveCollection(c);
-
-    const stats = Object.entries(person.stats).map(([k, v]) =>
-      `<div class="stat-row"><span class="label">${k}</span><span class="stat-bar"><i style="width:${v}%"></i></span><span class="val">${v}</span></div>`
+    const collection = loadCollection();
+    collection.persons[person.id] = (collection.persons[person.id] || 0) + 1;
+    saveCollection(collection);
+    const stats = Object.entries(person.stats).map(([key, value]) =>
+      `<div class="stat-row"><span class="label">${key}</span><span class="stat-bar"><i style="width:${value}%"></i></span><span class="val">${value}</span></div>`
     ).join("");
-    $("birth-card").innerHTML = `
-      <h2>${person.name}</h2>
-      <div class="yomi">${person.yomi} ／ ${person.alias || ""}</div>
-      <p>${person.house} ／ ${person.kuni} ／ ${person.born}年生まれ ／ ${person.rank}</p>
-      ${stats}
+    const birthMonth = person.birth_month || 1;
+    $("birth-card").innerHTML = `<h2>${person.name}</h2><div class="yomi">${person.yomi} ／ ${person.alias || ""}</div>
+      <p>${person.house} ／ ${person.kuni} ／ ${person.born}年${birthMonth}月生まれ ／ ${person.rank}</p>${stats}
+      <p class="birth-origin">誕生月: ${person.birth_month_note || "ゲーム用の仮設定"}</p>
       <div class="shukugan"><span class="cap">宿願</span><br>${person.shukugan}<br><small>${person.shukugan_note || ""}</small></div>
-      <p style="line-height:1.85">${person.intro}</p>`;
+      <p class="birth-intro">${person.intro}</p>`;
     show("screen-birth");
   }
 
   function startLife() {
-    queue = Engine.eventsForPerson(person, DATA.events).slice();
-    state = { year: person.born, reputation: 0, lifeMod: 0, flags: new Set(), history: [] };
-    paused = false; speed = 1;
+    queue = Engine.eventsForPerson(person, DATA.events);
+    queueIndex = 0;
+    state = Engine.createState(person);
+    paused = false; waitingForChoice = false; speed = 1; accumulator = 0;
     $("life-name").textContent = person.name;
-    $("life-historical-death").textContent = person.died + "年";
-    $("life-log").innerHTML = `<p><span class="year">${person.born}年</span> ${person.kuni}に生まれる。0歳。</p>`;
+    $("life-log").innerHTML = `<p><span class="year">${state.year}年${state.month}月</span> ${person.kuni}に生まれる。0歳。</p>`;
     $("event-box").classList.add("hidden");
-    updateMeta();
+    updateMeta(); updateHud(); updateControls();
     show("screen-life");
     startTimer();
   }
 
   function updateMeta() {
-    $("life-meta").textContent = `${state.year}年 ／ ${state.year - person.born}歳 ／ ${person.house}`;
-    $("life-reputation").textContent = state.reputation;
+    const rank = GAME_CONFIG.ranks[state.rankLevel] || GAME_CONFIG.ranks[0];
+    $("life-meta").textContent = `${state.year}年${state.month}月 ／ ${state.age}歳 ／ ${rank.label} ／ ${person.house}`;
+    $("life-historical-death").textContent = `${person.died}年`;
+  }
+
+  function updateHud() {
+    $("life-stats").innerHTML = GAME_CONFIG.stats.map((key) => {
+      const value = state.stats[key];
+      const shown = Math.round(value);
+      return `<div class="hud-stat"><span>${key}</span><div class="stat-bar"><i style="width:${Math.max(0, Math.min(100, value))}%"></i></div><b>${shown}</b></div>`;
+    }).join("");
+    $("life-reputation").textContent = Math.round(state.reputation);
+    $("life-money").textContent = state.money.toFixed(1);
+    $("life-health").textContent = healthLabel(state.health);
+    $("life-focus").value = state.focus;
+  }
+
+  function updateControls() {
+    $("btn-pause").textContent = waitingForChoice ? "選択待ち" : paused ? "進める" : "止める";
+    $("btn-pause").disabled = waitingForChoice;
+    $("btn-speed").textContent = `×${speed}`;
   }
 
   function startTimer() {
     stopTimer();
-    timer = setInterval(tick, Math.round(700 / speed));
+    lastFrameAt = performance.now();
+    timer = setInterval(frame, GAME_CONFIG.frameDurationMs);
   }
   function stopTimer() { if (timer) clearInterval(timer); timer = null; }
-
   function logLine(html) {
-    const div = document.createElement("div");
-    div.innerHTML = html;
-    $("life-log").appendChild(div);
+    const item = document.createElement("div");
+    item.innerHTML = html;
+    $("life-log").prepend(item);
+  }
+  function showChangeToast(text) {
+    const toast = $("change-toast");
+    toast.textContent = text;
+    toast.classList.add("visible");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("visible"), 2200);
+  }
+  function monthlyLog(income, focusResult) {
+    const date = `${state.year}年${state.month}月`;
+    if (income > 0) logLine(`<p class="dim"><span class="year">${date}</span> 年収から${income.toFixed(1)}貫を受け取った。</p>`);
+    if (focusResult.skipped) logLine(`<p class="dim"><span class="year">${date}</span> 所持金が足りず、${state.focus}を休んだ。</p>`);
+    else if (focusResult.stat && focusResult.gain > 0) {
+      const changed = focusResult.redirected > 0 ? `武勇 ${formatDelta(focusResult.gain)} ／ 知略 ${formatDelta(focusResult.redirected)}` : `${focusResult.stat} ${formatDelta(focusResult.gain)}`;
+      logLine(`<p class="change-line"><span class="year">${date}</span> ${state.focus}で${changed}。費用 −${focusResult.cost.toFixed(1)}貫</p>`);
+    } else if (focusResult.cash) logLine(`<p class="change-line"><span class="year">${date}</span> 家の仕事・商いで所持金 +${focusResult.cash.toFixed(1)}貫。</p>`);
+    else if (focusResult.health) logLine(`<p class="change-line"><span class="year">${date}</span> 休養し、健康 +${focusResult.health}。</p>`);
+    const changes = [];
+    if (income > 0) changes.push(`所持金 +${income.toFixed(1)}貫`);
+    if (focusResult.stat && focusResult.gain > 0) changes.push(`${focusResult.stat} +${formatDelta(focusResult.gain)}`);
+    if (focusResult.redirected > 0) changes.push(`知略 +${formatDelta(focusResult.redirected)}`);
+    if (focusResult.cost > 0) changes.push(`所持金 −${focusResult.cost.toFixed(1)}貫`);
+    if (focusResult.cash) changes.push(`所持金 +${focusResult.cash.toFixed(1)}貫`);
+    if (focusResult.health) changes.push(`健康 +${focusResult.health}`);
+    if (focusResult.skipped) changes.push(`${state.focus}を休み（費用不足）`);
+    if (changes.length) showChangeToast(changes.join("　／　"));
   }
 
-  function tick() {
-    if (paused) return;
-    state.year += 1;
-    updateMeta();
-    const death = Engine.effectiveDeath(person, state.lifeMod);
-    const next = queue[0];
-    if (next && state.year >= next.year) {
-      queue.shift();
+  function frame() {
+    const now = performance.now();
+    if (!paused && state) {
+      accumulator += (now - lastFrameAt) * speed;
+      let guard = 0;
+      while (accumulator >= GAME_CONFIG.monthDurationMs && !paused && guard < 24) {
+        accumulator -= GAME_CONFIG.monthDurationMs;
+        advanceMonth();
+        guard += 1;
+      }
+    }
+    lastFrameAt = now;
+  }
+
+  function advanceMonth() {
+    const result = Engine.processMonth(person, state);
+    monthlyLog(result.income, result.focus);
+    if (result.birthday) {
+      const agingText = result.aging.loss ? `武勇 ${formatDelta(-result.aging.loss)}、知略 ${formatDelta(result.aging.transferred)}へ経験を移した。` : "誕生日を迎えた。";
+      logLine(`<p class="birthday"><span class="year">${state.year}年${state.month}月</span> ${person.name}は${state.age}歳になった。${agingText}</p>`);
+      if (result.aging.loss) showChangeToast(`武勇 ${formatDelta(-result.aging.loss)}　／　知略 ${formatDelta(result.aging.transferred)}`);
+    }
+    updateMeta(); updateHud();
+    const next = queue[queueIndex];
+    if (next && next.year === state.year && Engine.eventMonth(next) === state.month) {
+      queueIndex += 1;
       showEvent(next);
       return;
     }
-    if (state.year >= death) { finishLife(); return; }
-    if ((state.year - person.born) % 10 === 0) {
-      logLine(`<p class="dim"><span class="year">${state.year}年</span> ${state.year - person.born}歳。年が過ぎていく。</p>`);
-    }
+    if (state.year >= Engine.effectiveDeath(person, state.lifeMod) && state.month === 12) { finishLife(); return; }
+  }
+
+  function formatEffect(effect) {
+    if (!effect) return "";
+    const labels = { "武勇": "武勇", "知略": "知略", "政治": "政治", "魅力": "魅力", "家柄": "家柄", "評判": "評判", "寿命": "寿命", "健康": "健康", "所持金": "所持金" };
+    return Object.entries(effect).filter(([key, value]) => labels[key] && typeof value === "number")
+      .map(([key, value]) => `<span class="effect-chip">${labels[key]} ${formatDelta(value)}${key === "所持金" ? "貫" : key === "寿命" ? "年" : ""}</span>`).join("");
   }
 
   function showEvent(event) {
-    paused = true;
+    paused = true; waitingForChoice = true; accumulator = 0; updateControls();
     const box = $("event-box");
-    box.innerHTML = `<h3>${event.year}年 ${event.title}（${event.year - person.born}歳）</h3><p>${event.body || ""}</p>`;
-    event.choices.forEach((choice) => {
-      const btn = document.createElement("button");
-      btn.className = "primary";
-      btn.textContent = choice.text;
-      btn.addEventListener("click", () => choose(event, choice));
-      box.appendChild(btn);
-    });
+    box.innerHTML = `<h3>${event.year}年${Engine.eventMonth(event)}月 ${event.title}（${state.age}歳）</h3><p>${event.body || ""}</p>`;
+    for (const choice of event.choices || []) {
+      const card = document.createElement("div");
+      card.className = "choice-card";
+      const title = document.createElement("strong"); title.textContent = choice.text;
+      const preview = document.createElement("div"); preview.className = "effect-preview"; preview.innerHTML = formatEffect(choice.effect);
+      const result = document.createElement("p"); result.className = "choice-result"; result.textContent = choice.result || "";
+      const button = document.createElement("button"); button.className = "primary"; button.textContent = "この道を選ぶ";
+      button.addEventListener("click", () => choose(event, choice));
+      card.append(title, preview, result, button); box.appendChild(card);
+    }
     box.classList.remove("hidden");
     box.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function choose(event, choice) {
     Engine.applyChoice(state, choice);
-    state.history.push({ year: event.year, title: event.title, choiceText: choice.text, result: choice.result });
+    const month = Engine.eventMonth(event);
+    state.history.push({ year: event.year, month, title: event.title, choiceText: choice.text, result: choice.result || "" });
     if (event.battle) {
-      const c = loadCollection();
-      c.battles[event.battle] = (c.battles[event.battle] || 0) + 1;
-      saveCollection(c);
+      const collection = loadCollection();
+      collection.battles[event.battle] = (collection.battles[event.battle] || 0) + 1;
+      saveCollection(collection);
     }
-    logLine(`<p><span class="year">${event.year}年</span> <strong>${event.title}</strong>――${choice.result}</p>`);
-    updateMeta();
+    logLine(`<p><span class="year">${event.year}年${month}月</span> <strong>${event.title}</strong>――${choice.text}。${choice.result || ""} ${formatEffect(choice.effect)}</p>`);
+    const effectLabels = { "武勇": "武勇", "知略": "知略", "政治": "政治", "魅力": "魅力", "家柄": "家柄", "評判": "評判", "寿命": "寿命", "健康": "健康", "所持金": "所持金" };
+    const effectText = Object.entries(choice.effect || {}).filter(([key, value]) => effectLabels[key] && typeof value === "number")
+      .map(([key, value]) => `${effectLabels[key]} ${formatDelta(value)}${key === "所持金" ? "貫" : key === "寿命" ? "年" : ""}`).join("　／　");
+    if (effectText) showChangeToast(effectText);
+    updateMeta(); updateHud();
     $("event-box").classList.add("hidden");
-    const death = Engine.effectiveDeath(person, state.lifeMod);
-    if (state.year >= death) { finishLife(); return; }
-    // 同じ年に次の出来事がある場合は、年を進めずに続けて出す（例: 1600年の直江状と長谷堂）
-    const next = queue[0];
-    if (next && next.year === state.year) {
-      queue.shift();
-      showEvent(next);
-      return;
+    if (state.year >= Engine.effectiveDeath(person, state.lifeMod) && state.month === 12) { finishLife(); return; }
+    const next = queue[queueIndex];
+    if (next && next.year === state.year && Engine.eventMonth(next) === state.month) {
+      queueIndex += 1; showEvent(next); return;
     }
-    paused = false;
+    waitingForChoice = false; paused = false; updateControls(); lastFrameAt = performance.now();
   }
 
   function finishLife() {
-    stopTimer();
+    stopTimer(); paused = true;
     const deathYear = Engine.effectiveDeath(person, state.lifeMod);
     const shukugan = Engine.evaluateShukugan(person, state.flags, deathYear);
-    const end = {
-      deathYear,
-      diff: deathYear - person.died,
-      shukugan,
-      reputation: state.reputation,
-    };
+    const end = { deathYear, diff: deathYear - person.died, shukugan, reputation: state.reputation,
+      stats: state.stats, initialStats: state.initialStats, money: state.money };
     const retsuden = Engine.buildRetsuden(person, state.history, end);
-    $("end-summary").innerHTML = `
-      <h2>${person.name}<span class="badge">${shukugan.grade}</span></h2>
-      <p>${deathYear}年没 ／ ${deathYear - person.born}歳（史実は${person.died}年・${person.died - person.born}歳）</p>
+    $("end-summary").innerHTML = `<h2>${person.name}<span class="badge">${shukugan.grade}</span></h2>
+      <p>${deathYear}年没 ／ ${Engine.ageAt(person, deathYear, 12)}歳（史実は${person.died}年）</p>
       <p>宿願「${person.shukugan}」<br>${shukugan.reason}</p>
-      <p>評判 ${state.reputation} ／ 経験した出来事 ${state.history.length}件</p>`;
+      <p>評判 ${Math.round(state.reputation)} ／ ${state.year}年${state.month}月時点の所持金 ${state.money.toFixed(1)}貫</p>
+      <p>健康 ${healthLabel(state.health)} ／ 経験した出来事 ${state.history.length}件</p>
+      <div class="end-stats">${GAME_CONFIG.stats.map((key) => `<span>${key}: ${Math.round(state.initialStats[key])} → ${Math.round(state.stats[key])} (${formatDelta(state.stats[key] - state.initialStats[key])})</span>`).join("")}</div>`;
     $("retsuden").textContent = retsuden;
     $("btn-copy").dataset.text = retsuden;
     show("screen-end");
   }
 
   async function init() {
-    const res = await fetch("data.json");
-    DATA = await res.json();
+    const response = await fetch("data.json");
+    DATA = await response.json();
     $("btn-born").addEventListener("click", rollBirth);
     $("btn-reroll").addEventListener("click", rollBirth);
     $("btn-start-life").addEventListener("click", startLife);
     $("btn-again").addEventListener("click", rollBirth);
-    $("btn-to-title").addEventListener("click", () => show("screen-title"));
-    $("btn-collection").addEventListener("click", () => {
-      renderCollection();
-      $("collection-panel").classList.toggle("hidden");
-    });
+    $("btn-to-title").addEventListener("click", () => { stopTimer(); show("screen-title"); });
+    $("btn-collection").addEventListener("click", () => { renderCollection(); $("collection-panel").classList.toggle("hidden"); });
     $("btn-pause").addEventListener("click", () => {
-      paused = !paused;
-      $("btn-pause").textContent = paused ? "進める" : "止める";
+      if (waitingForChoice) return;
+      paused = !paused; accumulator = 0; lastFrameAt = performance.now(); updateControls();
     });
     $("btn-speed").addEventListener("click", () => {
-      speed = speed === 1 ? 3 : 1;
-      $("btn-speed").textContent = speed === 1 ? "速くする ×3" : "普通に戻す";
-      startTimer();
+      const index = GAME_CONFIG.speeds.indexOf(speed);
+      speed = GAME_CONFIG.speeds[(index + 1) % GAME_CONFIG.speeds.length];
+      accumulator = 0; updateControls();
+    });
+    $("life-focus").addEventListener("change", (event) => { state.focus = event.target.value; });
+    renderSettings();
+    $("setting-event-frequency").addEventListener("change", (event) => {
+      const settings = loadSettings(); settings.eventFrequency = event.target.value; saveSettings(settings);
     });
     $("btn-copy").addEventListener("click", async () => {
       const text = $("btn-copy").dataset.text || "";

@@ -24,9 +24,10 @@ PEOPLE_DIR = ROOT / "content" / "people"
 EVENTS_DIR = ROOT / "content" / "events"
 OUT = ROOT / "data.json"
 
-PEOPLE_REQUIRED = ["id", "name", "yomi", "house", "kuni", "born", "died", "rank", "stats", "shukugan", "intro", "events"]
+PEOPLE_REQUIRED = ["id", "name", "yomi", "house", "kuni", "born", "birth_month", "birth_month_note", "died", "rank", "stats", "shukugan", "intro", "events"]
 EVENT_REQUIRED = ["id", "year", "who", "title", "choices"]
 STAT_KEYS = ["武勇", "知略", "政治", "魅力", "家柄"]
+EFFECT_KEYS = set(STAT_KEYS + ["評判", "寿命", "所持金", "健康"])
 
 
 def parse_file(path: Path):
@@ -63,6 +64,11 @@ def main():
             if not person["born"] < person["died"]:
                 errors.append(f"{path.name}: born < died になっていません")
             person["lifespan"] = person["died"] - person["born"]
+        birth_month = person.get("birth_month")
+        if not isinstance(birth_month, int) or isinstance(birth_month, bool) or not (1 <= birth_month <= 12):
+            errors.append(f"{path.name}: birth_month は1-12の整数で指定してください: {birth_month}")
+        if not isinstance(person.get("birth_month_note"), str) or not person["birth_month_note"].strip():
+            errors.append(f"{path.name}: birth_month_note に誕生月の根拠または試作値の説明が必要です")
         stats = person.get("stats", {})
         if isinstance(stats, dict):
             for key in STAT_KEYS:
@@ -89,12 +95,25 @@ def main():
                 errors.append(f"{path.name}: イベント id が重複しています: {event.get('id')}")
             seen_event_ids.add(event.get("id"))
             choices = event.get("choices")
+            event_month = event.get("month", 1)
+            if not isinstance(event_month, int) or isinstance(event_month, bool) or not (1 <= event_month <= 12):
+                errors.append(f"{path.name}: month は1-12の整数で指定してください: {event_month}")
             if isinstance(choices, list):
                 if len(choices) < 2:
                     errors.append(f"{path.name}: choices は2件以上必要です")
                 for i, c in enumerate(choices):
                     if not isinstance(c, dict) or "text" not in c or "result" not in c:
                         errors.append(f"{path.name}: choices[{i}] に text/result がありません")
+                        continue
+                    effect = c.get("effect", {})
+                    if not isinstance(effect, dict):
+                        errors.append(f"{path.name}: choices[{i}].effect は辞書で指定してください")
+                    else:
+                        for key, value in effect.items():
+                            if key not in EFFECT_KEYS:
+                                errors.append(f"{path.name}: choices[{i}].effect の未対応キーです: {key}")
+                            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                                errors.append(f"{path.name}: choices[{i}].effect.{key} は数値で指定してください: {value}")
             who = event.get("who")
             year = event.get("year")
             if who and who != "common":
@@ -137,7 +156,7 @@ def main():
         return 1
 
     out = {
-        "version": "0.1-prototype",
+        "version": "0.2-prototype",
         "people": people,
         "events": events,
         "planned_event_ids": planned,

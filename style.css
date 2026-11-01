@@ -30,6 +30,8 @@ button.ghost { background: transparent; color: var(--ink); border: 1px solid var
 button.small { width: auto; display: inline-block; padding: 8px 14px; font-size: 13px; margin: 0 6px 0 0; }
 .note { font-size: 12px; color: #6d604a; line-height: 1.7; }
 .panel { border-top: 1px solid var(--line); margin-top: 16px; padding-top: 12px; font-size: 14px; line-height: 1.8; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--line); margin-top: 18px; padding-top: 14px; font-size: 13px; }
+select { color: var(--ink); background: #faf4e6; border: 1px solid var(--accent2); border-radius: 8px; padding: 8px 10px; font: inherit; }
 .card { border: 1px solid var(--line); border-radius: 12px; padding: 18px 16px; background: #faf4e6; }
 .card h2 { margin: 0 0 4px; font-size: 26px; }
 .card .yomi { color: #6d604a; font-size: 13px; margin-bottom: 10px; }
@@ -45,12 +47,41 @@ button.small { width: auto; display: inline-block; padding: 8px 14px; font-size:
 .life-meta { color: #6d604a; font-size: 13px; margin-top: 2px; }
 .life-nums { font-size: 13px; text-align: right; line-height: 1.7; white-space: nowrap; }
 .life-controls { margin: 12px 0; }
-.log { line-height: 1.9; font-size: 14px; min-height: 160px; }
+.life-hud { border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: #faf4e6; margin: 10px 0 16px; }
+.life-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 12px; }
+.hud-stat { display: grid; grid-template-columns: 42px minmax(30px, 1fr) 27px; gap: 6px; align-items: center; font-size: 12px; }
+.hud-stat .stat-bar { height: 7px; }
+.hud-stat b { text-align: right; font-size: 13px; }
+.hud-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; border-top: 1px solid var(--line); margin-top: 10px; padding-top: 9px; font-size: 13px; }
+.hud-meta b { margin-left: 4px; }
+.focus-picker { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid var(--line); margin-top: 9px; padding-top: 9px; font-size: 13px; }
+.focus-picker select { max-width: 65%; }
+.change-toast { min-height: 0; height: 0; overflow: hidden; opacity: 0; transition: opacity .2s ease; }
+.change-toast.visible { height: auto; min-height: 32px; opacity: 1; margin: 8px 0; border-left: 4px solid #276441; padding: 5px 9px; color: #276441; background: #eaf1e5; font-weight: 700; font-size: 13px; }
+.log { line-height: 1.8; font-size: 14px; min-height: 100px; }
 .log .year { color: var(--accent); font-weight: 700; }
 .log .dim { color: #6d604a; }
+.log .change-line { color: #276441; }
+.log .birthday { color: #6b5a2e; border-bottom: 1px dashed var(--line); padding-bottom: 6px; }
 .event { border: 2px solid var(--accent); border-radius: 12px; padding: 16px; background: #faf4e6; margin-top: 14px; }
 .event h3 { margin: 0 0 8px; font-size: 19px; }
 .event p { line-height: 1.85; white-space: pre-line; }
 .event .result { border-top: 1px dashed var(--line); padding-top: 10px; }
+.choice-card { border-top: 1px solid var(--line); padding: 12px 0 4px; line-height: 1.7; }
+.choice-card strong { display: block; }
+.choice-result { color: #6d604a; font-size: 13px; margin: 6px 0; }
+.effect-preview { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.effect-chip { display: inline-block; border: 1px solid #718568; border-radius: 5px; padding: 2px 6px; color: #31583a; font-size: 12px; }
+.birth-origin { color: #6d604a; font-size: 12px; }
+.birth-intro { line-height: 1.85; }
+.end-stats { display: grid; gap: 4px; font-size: 13px; }
 .retsuden { line-height: 2.0; white-space: pre-line; background: #faf4e6; border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
 .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; background: var(--accent); color: #fff; font-size: 12px; margin-left: 6px; }
+@media (max-width: 380px) {
+  #app { padding: 12px 10px 32px; }
+  .screen { padding: 20px 14px 24px; }
+  .life-name { font-size: 19px; }
+  .life-meta { font-size: 11px; }
+  .life-stats { gap: 6px; }
+  .hud-stat { grid-template-columns: 38px minmax(24px, 1fr) 24px; gap: 4px; font-size: 11px; }
+}

@@ -6,6 +6,8 @@ alias: 時宗丸 / 藤五郎
 house: 伊達家
 kuni: 陸前
 born: 1568
+birth_month: 12
+birth_month_note: 1568年12月生まれとする資料に基づく。
 died: 1646
 rank: 家老級
 stats: { 武勇: 78, 知略: 82, 政治: 75, 魅力: 70, 家柄: 85 }

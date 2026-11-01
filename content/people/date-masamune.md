@@ -6,6 +6,8 @@ alias: 梵天丸
 house: 伊達家
 kuni: 陸前
 born: 1567
+birth_month: 9
+birth_month_note: 史実。永禄10年8月3日（西暦1567年9月5日）。
 died: 1636
 rank: 大名級
 stats: { 武勇: 72, 知略: 86, 政治: 90, 魅力: 88, 家柄: 92 }
