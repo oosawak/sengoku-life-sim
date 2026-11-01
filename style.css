@@ -73,6 +73,8 @@ select { color: var(--ink); background: #faf4e6; border: 1px solid var(--accent2
 .log .change-line { color: #276441; }
 .log .birthday { color: #6b5a2e; border-bottom: 1px dashed var(--line); padding-bottom: 6px; }
 .event { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; border: 2px solid var(--accent); border-radius: 12px; padding: 16px; background: #faf4e6; margin-top: 8px; }
+.event-kind { display: inline-block; color: #31583a; border: 1px solid #718568; border-radius: 5px; padding: 2px 7px; margin-bottom: 7px; font-size: 11px; }
+.event-kind.historical { color: var(--accent); border-color: var(--accent2); }
 .event h3 { margin: 0 0 8px; font-size: 19px; }
 .event p { line-height: 1.85; white-space: pre-line; }
 .event .result { border-top: 1px dashed var(--line); padding-top: 10px; }
@@ -81,6 +83,7 @@ select { color: var(--ink); background: #faf4e6; border: 1px solid var(--accent2
 .choice-result { color: #6d604a; font-size: 13px; margin: 6px 0; }
 .effect-preview { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
 .effect-chip { display: inline-block; border: 1px solid #718568; border-radius: 5px; padding: 2px 6px; color: #31583a; font-size: 12px; }
+.check-preview { display: inline-block; color: #6b4c12; border: 1px solid #b79749; border-radius: 5px; padding: 2px 6px; font-size: 12px; font-weight: 700; }
 .birth-origin { color: #6d604a; font-size: 12px; }
 .birth-intro { line-height: 1.85; }
 .end-stats { display: grid; gap: 4px; font-size: 13px; }
