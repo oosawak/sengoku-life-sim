@@ -110,6 +110,8 @@
 
 ## 進め方の提案
 
+- 2026-11-02決定: 全章分の雛形（サンプル）を先に作り、その後は雛形をもとに本人と話しながら本文を書いていく進め方に切り替えた。雛形は各章ファイルにあり、状態は「雛形」→「下書き」→確定と進める。
+- 雛形ファイル一覧: 序章 book-ch00-intro.md／第1章 book-ch01-yanagawa-koori.md（本文下書き済み）／第2章 book-ch02-fukushima-jokamachi.md／第3章 book-ch03-matsukawa.md／第4章 book-ch04-tateyama.md／第5章 book-ch05-omachi-kadoto.md／第6章 book-ch06-hachiman.md／第7章 book-ch07-aizu-shigezane.md／第8章 book-ch08-aizu-ryokoku.md／第9章 book-ch09-iwadeyama.md／第10章 book-ch10-gojuninmachi.md／第11章 book-ch11-wakabayashi-ashigaru.md／第12章 book-ch12-gofudaicho.md／第13章 book-ch13-shokunin.md／第14章 book-ch14-kita-higashi-ashigaru.md／第15章 book-ch15-two-grids.md／第16章 book-ch16-katahira-tendo.md／第17章 book-ch17-ohashi-shigezane.md／第18章 book-ch18-rokugo-hori.md／第19章 book-ch19-shichigo-hori.md／第20章 book-ch20-ishikiri.md／第21章 book-ch21-teizan-unga.md／第22章 book-ch22-minami-no-mon.md／第23章 book-ch23-shiogama-matsushima.md／第24章 book-ch24-tendo-zaisho.md／第25章 book-ch25-mizusawa.md／終章 book-ch99-finale.md／付録 book-appendix.md／コラム book-col-moniwa.md・book-col-nagai-takahata.md・book-col-murayama-date.md・book-col-oldmaps.md・book-col-uwajima.md。
 - 第4話以降のブログ読みものは、この本の章として書く運用に切り替える（書いた章からブログで先行公開し、反応を見て本へ収録）。
 - 執筆の順番は、素材の揃っている第5部→第1部→第6部→第2部→第7部→第3・4部の順が無理がない。
 - 販路は Zenn の本か Amazon Kindle。原稿は Markdown で貯めるので、どちらへも出せる。決めるのは後でよい。
